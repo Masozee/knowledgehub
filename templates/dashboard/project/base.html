@@ -27,7 +27,7 @@
                     <div class="container-lg wide-xl">
                         <div class="nk-header-wrap">
                             <div class="nk-header-brand">
-                                <a href="html/subscription/index.html" class="logo-link">
+                                <a href="{% url 'web:index' %}" class="logo-link">
                                     <img class="logo-light logo-img" src="{% static 'dashboard/images/logo.png' %}" srcset="{% static 'dashboard/images/logo2x.png' %} 2x" alt="logo">
                                     <img class="logo-dark logo-img" src="{% static 'dashboard/images/logo-dark.png' %}" srcset="{% static 'dashboard/images/logo-dark2x.png' %} 2x" alt="logo-dark">
                                     
@@ -202,7 +202,7 @@
                                             <h6 class="overline-title">Menu</h6>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="html/subscription/index.html" class="nk-menu-link">
+                                            <a href="{% url 'web:index' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-dashboard"></em></span>
                                                 <span class="nk-menu-text">Dashboard</span>
                                             </a>
