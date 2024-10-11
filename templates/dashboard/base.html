@@ -276,20 +276,20 @@
                                             <h6 class="overline-title text-primary-alt">Dashboards</h6>
                                         </li><!-- .nk-menu-heading -->
                                         <li class="nk-menu-item">
-                                            <a href="html/index-analytics.html" class="nk-menu-link">
+                                            <a href="{% url 'web:index' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-globe"></em></span>
                                                 <span class="nk-menu-text">Website</span>
 
                                             </a>
                                         </li><!-- .nk-menu-item -->
                                         <li class="nk-menu-item">
-                                            <a href="{% url 'web:index' %}" class="nk-menu-link">
+                                            <a href="{% url 'project:index' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-tile-thumb"></em></span>
                                                 <span class="nk-menu-text">Research & Projects</span>
                                             </a>
                                         </li><!-- .nk-menu-item -->
                                         <li class="nk-menu-item">
-                                            <a href="html/index-analytics.html" class="nk-menu-link">
+                                            <a href="{% url 'publications:index' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-text-rich"></em></span>
                                                 <span class="nk-menu-text">Publications</span>
                                             </a>
@@ -346,13 +346,10 @@
                                                     <a href="html/user-list-compact.html" class="nk-menu-link"><span class="nk-menu-text">Department</span></a>
                                                 </li>
                                                 <li class="nk-menu-item">
-                                                    <a href="html/user-details-regular.html" class="nk-menu-link"><span class="nk-menu-text">User Details - Regular</span></a>
+                                                    <a href="html/user-details-regular.html" class="nk-menu-link"><span class="nk-menu-text">Research Fellow</span></a>
                                                 </li>
                                                 <li class="nk-menu-item">
-                                                    <a href="html/user-profile-regular.html" class="nk-menu-link"><span class="nk-menu-text">User Profile - Regular</span></a>
-                                                </li>
-                                                <li class="nk-menu-item">
-                                                    <a href="html/user-card.html" class="nk-menu-link"><span class="nk-menu-text">User Contact - Card</span></a>
+                                                    <a href="html/user-profile-regular.html" class="nk-menu-link"><span class="nk-menu-text">Internship</span></a>
                                                 </li>
                                             </ul><!-- .nk-menu-sub -->
                                         </li><!-- .nk-menu-item -->
@@ -441,7 +438,7 @@
                                             </a>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="html/components.html" class="nk-menu-link">
+                                            <a href="{% url 'web:index-wiki' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-layers"></em></span>
                                                 <span class="nk-menu-text">Wiki<br>
                                                 <small>Centralized Knowledge Hub for CSIS</small></span>
@@ -460,9 +457,58 @@
                                     <a href="#" class="toggle" data-target="sideNav"><em class="icon ni ni-cross"></em></a>
                                 </div><!-- .nk-aside-close -->
                             </div><!-- .nk-aside -->
-                            {% block content %}
-
-                            {% endblock %}
+                            <div class="container wide-xl">
+                                <div class="nk-content-inner">
+                                    <div class="nk-content-body">
+                                    {% block content %}
+        
+                                    {% endblock %}
+                                    <div class="nk-footer">
+                                    <div class="container wide-xl">
+                                        <div class="nk-footer-wrap g-2">
+                                            <div class="nk-footer-copyright"> &copy; 2024 Knowledge hub by <a href="https://csis.or.id" target="_blank">CSIS</a>
+                                            </div>
+                                            <div class="nk-footer-links">
+                                                <ul class="nav nav-sm">
+                                                    <li class="nav-item dropup">
+                                                        <a href="#" class="dropdown-toggle dropdown-indicator has-indicator nav-link text-base" data-bs-toggle="dropdown" data-offset="0,10"><span>English</span></a>
+                                                        <div class="dropdown-menu dropdown-menu-sm dropdown-menu-end">
+                                                            <ul class="language-list">
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">English</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">Español</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">Français</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">Türkçe</span>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a data-bs-toggle="modal" href="#region" class="nav-link"><em class="icon ni ni-globe"></em><span class="ms-1">Select Region</span></a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- footer @e -->
+                                </div>
+                            </div>
+                        </div>
 
                         </div>
                     </div>

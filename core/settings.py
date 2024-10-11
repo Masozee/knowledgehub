@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'app.publications',
     'app.tools',
     'app.config',
+    'app.project',
 
     #third party apps
     'microsoft_auth',
