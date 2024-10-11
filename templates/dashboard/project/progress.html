@@ -1,0 +1,79 @@
+{% extends 'dashboard/project/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="nk-content-body">
+                                <div class="nk-content-wrap">
+                                    <div class="nk-block-head nk-block-head-sm">
+                                        <div class="nk-block-between">
+                                            <div class="nk-block-head-content">
+                                                <h3 class="nk-block-title page-title">Project Title: Lorem ipsum dolor sit amet</h3>
+                                            </div><!-- .nk-block-head-content -->
+                                            <div class="nk-block-head-content">
+                                                <div class="toggle-wrap nk-block-tools-toggle">
+                                                    <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu"><em class="icon ni ni-menu-alt-r"></em></a>
+                                                    <div class="toggle-expand-content" data-content="pageMenu">
+                                                        <ul class="nk-block-tools g-3">
+                                                            <li><a href="#" class="btn btn-white btn-outline-light"><em class="icon ni ni-plus"></em><span>Add Task</span></a></li>
+                                                            <li class="nk-block-tools-opt"><a href="#" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>Add Board</span></a></li>
+                                                        </ul>
+                                                    </div>
+                                                </div><!-- .toggle-wrap -->
+                                            </div><!-- .nk-block-head-content -->
+                                        </div><!-- .nk-block-between -->
+                                    </div><!-- .nk-block-head -->
+                                    <div class="nk-block">
+                                        <div id="kanban" class="nk-kanban"></div>
+                                    </div>
+                                </div>
+                                <!-- footer @s -->
+                                <div class="nk-footer">
+                                    <div class="container wide-xl">
+                                        <div class="nk-footer-wrap g-2">
+                                            <div class="nk-footer-copyright"> &copy; 2023 DashLite. Template by <a href="https://softnio.com" target="_blank">Softnio</a>
+                                            </div>
+                                            <div class="nk-footer-links">
+                                                <ul class="nav nav-sm">
+                                                    <li class="nav-item dropup">
+                                                        <a href="#" class="dropdown-toggle dropdown-indicator has-indicator nav-link text-base" data-bs-toggle="dropdown" data-offset="0,10"><span>English</span></a>
+                                                        <div class="dropdown-menu dropdown-menu-sm dropdown-menu-end">
+                                                            <ul class="language-list">
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">English</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">Español</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">Français</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">Türkçe</span>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a data-bs-toggle="modal" href="#region" class="nav-link"><em class="icon ni ni-globe"></em><span class="ms-1">Select Region</span></a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- footer @e -->
+                            </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'dashboard/assets/js/libs/jkanban.js' %}"></script>
+    <script src="{% static 'dashboard/assets/js/apps/kanban.js' %}"></script>
+{% endblock %}

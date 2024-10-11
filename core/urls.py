@@ -29,6 +29,7 @@ urlpatterns = [
     path('', include('app.tools.url')),
     path('project/', include('app.project.url')),
     path('publications/', include('app.publications.url')),
+    path('events/', include('app.events.url')),
 
 ]
 
