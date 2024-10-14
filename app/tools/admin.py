@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.contrib import messages
 from .models import DatabaseBackup
+from django.contrib import admin
+from django.contrib.auth import get_user_model
+from .models import Conversation, Message
 
 @admin.register(DatabaseBackup)
 class DatabaseBackupAdmin(admin.ModelAdmin):
@@ -39,3 +42,17 @@ class DatabaseBackupAdmin(admin.ModelAdmin):
             self.message_user(request, f"Error restoring database: {str(e)}", level=messages.ERROR)
 
     restore_backup.short_description = "Restore selected backup"
+
+
+
+User = get_user_model()
+
+@admin.register(Conversation)
+class ConversationAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user', 'created_at', 'updated_at')
+    prepopulated_fields = {'slug': ('title',)}
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('conversation', 'is_user', 'ai_service', 'timestamp')
+    list_filter = ('is_user', 'ai_service')

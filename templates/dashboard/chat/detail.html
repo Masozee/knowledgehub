@@ -1,0 +1,316 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="js">
+
+<head>
+    <base href="../../">
+    <meta charset="utf-8">
+    <meta name="author" content="Centre for Strategic and International Studies">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="AI Chat powered by multiple AI services">
+    <link rel="shortcut icon" href="{% static 'dashboard/images/favicon.png' %}">
+    <title>AI Chat | CSIS Dashboard</title>
+    <link rel="stylesheet" href="{% static 'dashboard/assets/css/dashlite.css' %}">
+    <link id="skin-default" rel="stylesheet" href="{% static 'dashboard/assets/css/theme.css' %}">
+    <style>
+        .chat-code {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body class="nk-body bg-white npc-default has-aside">
+    <div class="nk-app-root">
+        <div class="nk-main">
+            <div class="nk-wrap">
+                <div class="nk-content">
+                    <div class="container wide-xl">
+                        <div class="nk-content-inner">
+                            <div class="nk-aside" data-content="sideNav" data-toggle-overlay="true" data-toggle-screen="lg" data-toggle-body="true">
+                                <div class="nk-sidebar-menu" data-simplebar>
+                                    <ul class="nk-menu">
+                                        <li class="nk-menu-heading">
+                                            <h6 class="overline-title text-primary-alt">Your Conversations</h6>
+                                        </li>
+                                        {% for chat in all_chats %}
+                                        <li class="nk-menu-item {% if chat.id == current_chat.id %}active{% endif %}">
+                                            <a href="{% url 'tools:chat_detail' chat.id %}" class="nk-menu-link">
+                                                <span class="nk-menu-icon"><em class="icon ni ni-chat-circle"></em></span>
+                                                <span class="nk-menu-text">{{ chat.title }}</span>
+                                            </a>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="nk-content-body">
+                                <div class="nk-content-wrap">
+                                    <div class="nk-block-head nk-block-head-sm">
+                                        <div class="nk-block-between">
+                                            <div class="nk-block-head-content">
+                                                <h3 class="nk-block-title page-title">Chat with AI</h3>
+                                            </div>
+                                            <div class="nk-block-head-content">
+                                                <div class="toggle-wrap nk-block-tools-toggle">
+                                                    <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu"><em class="icon ni ni-more-v"></em></a>
+                                                    <div class="toggle-expand-content" data-content="pageMenu">
+                                                        <ul class="nk-block-tools g-3">
+                                                            <li>
+                                                                <div class="drodown">
+                                                                    <a href="#" class="dropdown-toggle btn btn-white btn-dim btn-outline-light" data-bs-toggle="dropdown"><em class="d-none d-sm-inline icon ni ni-calender-date"></em><span><span class="d-none d-md-inline">Select</span> AI Model</span><em class="dd-indc icon ni ni-chevron-right"></em></a>
+                                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                                        <ul class="link-list-opt no-bdr">
+                                                                            {% for service in ai_services %}
+                                                                            <li><a href="#" data-service="{{ service }}"><span>{{ service|title }}</span></a></li>
+                                                                            {% endfor %}
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>
+                                                            </li>
+                                                            <li class="nk-block-tools-opt"><a href="{% url 'tools:new_conversation' %}" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>New Chat</span></a></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="nk-chat">
+                                        <div class="nk-chat-body">
+                                            <div class="nk-chat-panel" data-simplebar>
+                                                {% for message in messages %}
+                                                <div class="chat {% if message.is_user %}is-you{% else %}is-me{% endif %}">
+                                                    <div class="chat-content">
+                                                        <div class="chat-bubbles">
+                                                            <div class="chat-bubble">
+                                                                {% if message.content|slice:":3" == "```" and message.content|slice:"-3:" == "```" %}
+                                                                    <div class="chat-msg chat-code">{{ message.content|slice:"3:-3" }}</div>
+                                                                {% else %}
+                                                                    <div class="chat-msg">{{ message.content }}</div>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                        <ul class="chat-meta">
+                                                            <li>{% if message.is_user %}You{% else %}{{ message.ai_service|default:"AI"|title }}{% endif %}</li>
+                                                            <li>{{ message.timestamp|date:"d M, Y H:i" }}</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            <div class="nk-chat-editor">
+                                                <div class="nk-chat-editor-form">
+                                                    <div class="form-control-wrap">
+                                                        <textarea class="form-control form-control-simple no-resize" rows="1" id="chat-message" placeholder="Type your message..."></textarea>
+                                                    </div>
+                                                </div>
+                                                <ul class="nk-chat-editor-tools g-2">
+                                                    <li>
+                                                        <button id="send-message" class="btn btn-round btn-primary btn-icon"><em class="icon ni ni-send-alt"></em></button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{% static 'dashboard/assets/js/bundle.js' %}"></script>
+    <script src="{% static 'dashboard/assets/js/scripts.js' %}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatPanel = document.querySelector('.nk-chat-panel');
+        const messageInput = document.getElementById('chat-message');
+        const sendButton = document.getElementById('send-message');
+        const aiServiceDropdown = document.querySelector('.dropdown-menu');
+        const conversationTitle = document.querySelector('.nk-block-title.page-title');
+        const sidebarConversationList = document.querySelector('.nk-menu');
+    
+        let currentAiService = 'claude';  // Default AI service
+        const currentChatId = '{{ current_chat.id }}';  // Get the current chat ID from the template context
+    
+        function scrollToBottom() {
+            chatPanel.scrollTop = chatPanel.scrollHeight;
+        }
+    
+        function addMessageToChat(content, isUser, aiService = '') {
+            const chatDiv = document.createElement('div');
+            chatDiv.className = `chat ${isUser ? 'is-you' : 'is-me'}`;
+            
+            let messageContent;
+            if (content.startsWith('```') && content.endsWith('```')) {
+                messageContent = `<div class="chat-msg chat-code">${content.slice(3, -3)}</div>`;
+            } else {
+                messageContent = `<div class="chat-msg">${content}</div>`;
+            }
+            
+            chatDiv.innerHTML = `
+                <div class="chat-content">
+                    <div class="chat-bubbles">
+                        <div class="chat-bubble">
+                            ${messageContent}
+                        </div>
+                    </div>
+                    <ul class="chat-meta">
+                        <li>${isUser ? 'You' : aiService || 'AI'}</li>
+                        <li>${new Date().toLocaleString()}</li>
+                    </ul>
+                </div>
+            `;
+            chatPanel.appendChild(chatDiv);
+            scrollToBottom();
+        }
+    
+        function updateConversationTitle(newTitle) {
+            // Update the title in the header
+            if (conversationTitle) {
+                conversationTitle.textContent = newTitle;
+            }
+    
+            // Update the title in the sidebar
+            const sidebarItem = sidebarConversationList.querySelector(`[data-conversation-id="${currentChatId}"]`);
+            if (sidebarItem) {
+                const titleSpan = sidebarItem.querySelector('.nk-menu-text');
+                if (titleSpan) {
+                    titleSpan.textContent = newTitle;
+                }
+            }
+        }
+    
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                addMessageToChat(message, true);
+                messageInput.value = '';
+    
+                fetch(`{% url 'tools:send_message' conversation_id=current_chat.id %}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: new URLSearchParams({
+                        'message': message,
+                        'ai_service': currentAiService
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        addMessageToChat(data.message, false, currentAiService);
+                        if (data.title) {
+                            updateConversationTitle(data.title);
+                        }
+                    } else if (data.error) {
+                        addMessageToChat(`Error: ${data.error}`, false, 'System');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    addMessageToChat('An error occurred while sending the message.', false, 'System');
+                });
+            }
+        }
+    
+        sendButton.addEventListener('click', sendMessage);
+    
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    
+        aiServiceDropdown.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A' && e.target.dataset.service) {
+                currentAiService = e.target.dataset.service;
+                document.querySelector('.btn.btn-white .d-none.d-md-inline').textContent = currentAiService;
+            }
+        });
+    
+        // New Conversation button
+        const newConversationButton = document.querySelector('[href="{% url 'tools:new_conversation' %}"]');
+        if (newConversationButton) {
+            newConversationButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                fetch(this.href, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+    
+        // Delete Conversation button
+        const deleteConversationButton = document.querySelector('[data-action="delete-conversation"]');
+        if (deleteConversationButton) {
+            deleteConversationButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('Are you sure you want to delete this conversation?')) {
+                    fetch(`{% url 'tools:delete_conversation' conversation_id=current_chat.id %}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            });
+        }
+    
+        // Clear Conversation button
+        const clearConversationButton = document.querySelector('[data-action="clear-conversation"]');
+        if (clearConversationButton) {
+            clearConversationButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('Are you sure you want to clear this conversation?')) {
+                    fetch(`{% url 'tools:clear_conversation' conversation_id=current_chat.id %}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            chatPanel.innerHTML = '';
+                            addMessageToChat('Conversation cleared.', false, 'System');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            });
+        }
+    
+        scrollToBottom();
+    });
+    </script>
+</body>
+
+</html>

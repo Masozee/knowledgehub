@@ -227,3 +227,25 @@ sys.path.append(str(BASE_DIR))
 
 # Specify the login redirect URL
 LOGIN_REDIRECT_URL = '/dashboard/'
+
+AI_SERVICES = {
+    'openai': {
+        'api_key': config('OPENAI_API_KEY'),
+        'model': 'gpt-3.5-turbo',  # or 'gpt-4' if you have access
+        'max_tokens': 1000,
+        'temperature': 0.7,
+    },
+    'anthropic': {
+        'api_key': config('ANTHROPIC_API_KEY'),
+        'model': 'claude-3-5-sonnet-20240620',
+        'max_tokens': 1024,
+    },
+    'perplexity': {
+        'api_key': config('PERPLEXITY_API_KEY'),
+        'model': 'mixtral-8x7b-instruct',
+        'max_tokens': 1000,
+    },
+}
+
+# OpenAI specific settings (if needed separately)
+OPENAI_API_KEY = AI_SERVICES['openai']['api_key']

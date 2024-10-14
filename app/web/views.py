@@ -9,3 +9,12 @@ def userHome(request):
 
 def wiki(request):
     return render(request, 'dashboard/wiki/index.html')
+
+def srm(request):
+    return render(request, 'dashboard/srm/index.html')
+
+def assetList(request):
+    return render(request, 'dashboard/asset/index.html')
+
+def chatAI(request):
+    return render(request, 'dashboard/chat/index.html')

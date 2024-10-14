@@ -4,6 +4,8 @@ from django.db import models, connection
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from decouple import config
+from django.utils.text import slugify
+from django.utils import timezone
 
 
 class DatabaseBackup(models.Model):
@@ -103,3 +105,49 @@ class AnalyticsVisitorData(models.Model):
 
     class Meta:
         app_label = 'tools'
+
+class Conversation(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    slug = models.SlugField(unique=True, max_length=255, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.title:
+            # Use current time if created_at is not set yet
+            current_time = self.created_at or timezone.now()
+            self.title = f"Conversation {current_time.strftime('%Y-%m-%d %H:%M')}"
+
+        if not self.slug:
+            self.slug = slugify(self.title)
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+    def update_title(self, new_title):
+        self.title = new_title
+        self.slug = slugify(new_title)
+        self.save()
+
+class Message(models.Model):
+    AI_SERVICE_CHOICES = [
+        ('claude', 'Claude'),
+        ('openai', 'OpenAI'),
+        ('perplexity', 'Perplexity'),
+    ]
+
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    content = models.TextField()
+    is_user = models.BooleanField()
+    ai_service = models.CharField(max_length=20, choices=AI_SERVICE_CHOICES, null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    metadata = models.JSONField(null=True, blank=True)  # For storing additional data like tokens used, etc.
+
+    def __str__(self):
+        return f"{'User' if self.is_user else 'AI'} message in {self.conversation.title}"
+
+    class Meta:
+        ordering = ['timestamp']
