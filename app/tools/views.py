@@ -107,15 +107,28 @@ def call_claude_api(history, user_message):
     try:
         anthropic_settings = settings.AI_SERVICES['anthropic']
         client = anthropic.Anthropic(api_key=anthropic_settings['api_key'])
-        messages = [{"role": "human" if msg["role"] == "human" else "assistant", "content": msg["content"]} for msg in
-                    history]
-        messages.append({"role": "human", "content": user_message})
+
+        # Convert history to the format expected by the Claude API
+        formatted_messages = []
+        for msg in history:
+            formatted_messages.append({
+                "role": "user" if msg["role"] == "human" else "assistant",
+                "content": [{"type": "text", "text": msg["content"]}]
+            })
+
+        # Add the new user message
+        formatted_messages.append({
+            "role": "user",
+            "content": [{"type": "text", "text": user_message}]
+        })
 
         response = client.messages.create(
             model=anthropic_settings['model'],
-            messages=messages,
             max_tokens=anthropic_settings['max_tokens'],
+            temperature=0,  # You can adjust this or make it configurable
+            messages=formatted_messages
         )
+
         return response.content[0].text
     except Exception as e:
         logger.exception(f"Error calling Claude API: {str(e)}")
