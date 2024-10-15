@@ -54,13 +54,26 @@ def chat_detail(request, conversation_id):
 
 @login_required
 def new_conversation(request):
-    conversation = Conversation.objects.create(user=request.user)
-    return redirect('tools:chat_detail', conversation_id=conversation.id)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        conversation = Conversation.objects.create(user=request.user)
+        return JsonResponse({
+            'chat': {
+                'id': conversation.id,
+                'title': conversation.title,
+                'created_at': conversation.created_at.isoformat()
+            }
+        })
+    else:
+        conversation = Conversation.objects.create(user=request.user)
+        return redirect('tools:chat_detail', conversation_id=conversation.id)
 
 
 @login_required
 @require_POST
 def send_message(request, conversation_id):
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+
     conversation = get_object_or_404(Conversation, id=conversation_id, user=request.user)
     user_message = request.POST.get('message')
     ai_service = request.POST.get('ai_service', 'claude')
@@ -202,6 +215,7 @@ def generate_title(first_message, ai_service):
                 temperature=openai_settings['temperature'],
             )
             return response.choices[0].text.strip()
+
         elif ai_service == 'claude':
             anthropic_settings = settings.AI_SERVICES['anthropic']
             client = anthropic.Anthropic(api_key=anthropic_settings['api_key'])
@@ -212,25 +226,27 @@ def generate_title(first_message, ai_service):
                 temperature=0.7,
             )
             return response.completion.strip()
+
         elif ai_service == 'perplexity':
             # Implement Perplexity API call here
             # This is a placeholder, you'll need to replace it with actual Perplexity API call
             return f"Conversation about {first_message[:20]}..."
+
     except Exception as e:
         logger.exception(f"Error generating title with {ai_service}: {str(e)}")
 
     # Fallback to a simple title if AI generation fails
-    return f"Conversation about {first_message[:20]}..."
+    return f"{first_message[:20]}..."
 
 @login_required
 def delete_conversation(request, conversation_id):
     conversation = get_object_or_404(Conversation, id=conversation_id, user=request.user)
     conversation.delete()
-    return redirect('chat_list')
+    return redirect('web:index')
 
 
 @login_required
 def clear_conversation(request, conversation_id):
     conversation = get_object_or_404(Conversation, id=conversation_id, user=request.user)
     conversation.messages.all().delete()
-    return redirect('chat_detail', conversation_id=conversation_id)
+    return redirect('web:chat_detail', conversation_id=conversation_id)

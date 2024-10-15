@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from decouple import config
 from django.utils.text import slugify
 from django.utils import timezone
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class DatabaseBackup(models.Model):
@@ -140,7 +141,7 @@ class Message(models.Model):
     ]
 
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
-    content = models.TextField()
+    content = CKEditor5Field('Text', config_name='extends')
     is_user = models.BooleanField()
     ai_service = models.CharField(max_length=20, choices=AI_SERVICE_CHOICES, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)

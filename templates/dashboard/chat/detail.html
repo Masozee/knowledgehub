@@ -1,116 +1,418 @@
+{% load custom_filters %}
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="js">
+<html lang="zxx" class="js">
 
 <head>
     <base href="../../">
     <meta charset="utf-8">
     <meta name="author" content="Centre for Strategic and International Studies">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="AI Chat powered by multiple AI services">
+    <meta name="description" content="Founded in 1971, the Centre for Strategic and International Studies (CSIS) has won recognition as an important research and policy institution both within Indonesia and internationally. Its development over more than three decades is entwined with the history of Indonesia itself.">
+    <!-- Fav Icon  -->
     <link rel="shortcut icon" href="{% static 'dashboard/images/favicon.png' %}">
-    <title>AI Chat | CSIS Dashboard</title>
+    <!-- Page Title  -->
+    <title>AI Chat | a Dashboard by CSIS</title>
+    <!-- StyleSheets  -->
     <link rel="stylesheet" href="{% static 'dashboard/assets/css/dashlite.css' %}">
     <link id="skin-default" rel="stylesheet" href="{% static 'dashboard/assets/css/theme.css' %}">
     <style>
-        .chat-code {
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            padding: 10px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-break: break-all;
+        /* Style for inline code */
+        code {
+            border-radius: 3px;
+            padding: 2px 4px;
+            font-family: "Courier New", Courier, monospace;
+            color: #c7254e;
+            font-size: 14px;
         }
+
+        /* Style for block code */
+        .chat-code {
+            background-color: #28853e; /* Black background for code blocks */
+            color: #faf8f8; /* Light text color */
+            padding: 10px;
+            border-radius: 5px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            white-space: pre-wrap; /* Preserve line breaks */
+            overflow-x: auto; /* Allow horizontal scrolling if the code is too wide */
+        }
+
     </style>
 </head>
 
-<body class="nk-body bg-white npc-default has-aside">
+<body class="nk-body bg-white npc-default apps-only ">
     <div class="nk-app-root">
-        <div class="nk-main">
-            <div class="nk-wrap">
+        <!-- main @s -->
+        <div class="nk-main ">
+            <!-- wrap @s -->
+            <div class="nk-wrap ">
+                <div class="nk-header nk-header-fixed is-light">
+                    <div class="container-lg wide-xl">
+                        <div class="nk-header-wrap">
+                            <div class="nk-header-brand">
+                                <a href="{% url 'web:index' %}" class="logo-link">
+                                    <img class="logo-light logo-img" src="{% static 'dashboard/images/logo.png' %}" srcset="{% static 'dashboard/images/logo2x.png' %} 2x" alt="logo">
+                                    <img class="logo-dark logo-img" src="{% static 'dashboard/images/logo-dark.png' %}" srcset="{% static 'dashboard/images/logo-dark2x.png' %} 2x" alt="logo-dark">
+
+                                </a>
+                            </div><!-- .nk-header-brand -->
+                            <div class="nk-header-tools">
+                                <ul class="nk-quick-nav">
+                                    <li class="dropdown language-dropdown d-none d-sm-block me-n1">
+                                        <a href="#" class="dropdown-toggle nk-quick-nav-icon" data-bs-toggle="dropdown">
+                                            <div class="quick-icon border border-light">
+                                                <img class="icon" src="{% static 'dashboard/images/flags/english-sq.png' %}" alt="">
+                                            </div>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-s1">
+                                            <ul class="language-list">
+                                                <li>
+                                                    <a href="#" class="language-item">
+                                                        <img src="{% static 'dashboard/images/flags/english.png' %}" alt="" class="language-flag">
+                                                        <span class="language-name">English</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="language-item">
+                                                        <img src="{% static 'dashboard/images/flags/spanish.png' %}" alt="" class="language-flag">
+                                                        <span class="language-name">Español</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="language-item">
+                                                        <img src="{% static 'dashboard/images/flags/french.png' %}" alt="" class="language-flag">
+                                                        <span class="language-name">Français</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="language-item">
+                                                        <img src="{% static 'dashboard/images/flags/turkey.png' %}" alt="" class="language-flag">
+                                                        <span class="language-name">Türkçe</span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </li><!-- .dropdown -->
+                                    <li class="dropdown user-dropdown">
+                                        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
+                                            <div class="user-toggle">
+                                                <div class="user-avatar sm">
+                                                    <em class="icon ni ni-user-alt"></em>
+                                                </div>
+                                                <div class="user-name dropdown-indicator d-none d-sm-block">Abu Bin Ishityak</div>
+                                            </div>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1">
+                                            <div class="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
+                                                <div class="user-card">
+                                                    <div class="user-avatar">
+                                                        <span>AB</span>
+                                                    </div>
+                                                    <div class="user-info">
+                                                        <span class="lead-text">Abu Bin Ishtiyak</span>
+                                                        <span class="sub-text">info@softnio.com</span>
+                                                    </div>
+                                                    <div class="user-action">
+                                                        <a class="btn btn-icon me-n2" href="html/subscription/profile-setting.html"><em class="icon ni ni-setting"></em></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="dropdown-inner">
+                                                <ul class="link-list">
+                                                    <li><a href="html/subscription/profile.html"><em class="icon ni ni-user-alt"></em><span>View Profile</span></a></li>
+                                                    <li><a href="html/subscription/profile-setting.html"><em class="icon ni ni-setting-alt"></em><span>Account Setting</span></a></li>
+                                                    <li><a href="html/subscription/profile-activity.html"><em class="icon ni ni-activity-alt"></em><span>Login Activity</span></a></li>
+                                                    <li><a class="dark-switch" href="#"><em class="icon ni ni-moon"></em><span>Dark Mode</span></a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="dropdown-inner">
+                                                <ul class="link-list">
+                                                    <li><a href="#"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </li><!-- .dropdown -->
+                                    <li class="dropdown notification-dropdown">
+                                        <a href="#" class="dropdown-toggle nk-quick-nav-icon me-lg-n1" data-bs-toggle="dropdown">
+                                            <div class="icon-status icon-status-info"><em class="icon ni ni-bell"></em></div>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-xl dropdown-menu-end dropdown-menu-s1">
+                                            <div class="dropdown-head">
+                                                <span class="sub-title nk-dropdown-title">Notifications</span>
+                                                <a href="#">Mark All as Read</a>
+                                            </div>
+                                            <div class="dropdown-body">
+                                                <div class="nk-notification">
+                                                    <div class="nk-notification-item dropdown-inner">
+                                                        <div class="nk-notification-icon">
+                                                            <em class="icon icon-circle bg-warning-dim ni ni-curve-down-right"></em>
+                                                        </div>
+                                                        <div class="nk-notification-content">
+                                                            <div class="nk-notification-text">You have requested to <span>Widthdrawl</span></div>
+                                                            <div class="nk-notification-time">2 hrs ago</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="nk-notification-item dropdown-inner">
+                                                        <div class="nk-notification-icon">
+                                                            <em class="icon icon-circle bg-success-dim ni ni-curve-down-left"></em>
+                                                        </div>
+                                                        <div class="nk-notification-content">
+                                                            <div class="nk-notification-text">Your <span>Deposit Order</span> is placed</div>
+                                                            <div class="nk-notification-time">2 hrs ago</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="nk-notification-item dropdown-inner">
+                                                        <div class="nk-notification-icon">
+                                                            <em class="icon icon-circle bg-warning-dim ni ni-curve-down-right"></em>
+                                                        </div>
+                                                        <div class="nk-notification-content">
+                                                            <div class="nk-notification-text">You have requested to <span>Widthdrawl</span></div>
+                                                            <div class="nk-notification-time">2 hrs ago</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="nk-notification-item dropdown-inner">
+                                                        <div class="nk-notification-icon">
+                                                            <em class="icon icon-circle bg-success-dim ni ni-curve-down-left"></em>
+                                                        </div>
+                                                        <div class="nk-notification-content">
+                                                            <div class="nk-notification-text">Your <span>Deposit Order</span> is placed</div>
+                                                            <div class="nk-notification-time">2 hrs ago</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="nk-notification-item dropdown-inner">
+                                                        <div class="nk-notification-icon">
+                                                            <em class="icon icon-circle bg-warning-dim ni ni-curve-down-right"></em>
+                                                        </div>
+                                                        <div class="nk-notification-content">
+                                                            <div class="nk-notification-text">You have requested to <span>Widthdrawl</span></div>
+                                                            <div class="nk-notification-time">2 hrs ago</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="nk-notification-item dropdown-inner">
+                                                        <div class="nk-notification-icon">
+                                                            <em class="icon icon-circle bg-success-dim ni ni-curve-down-left"></em>
+                                                        </div>
+                                                        <div class="nk-notification-content">
+                                                            <div class="nk-notification-text">Your <span>Deposit Order</span> is placed</div>
+                                                            <div class="nk-notification-time">2 hrs ago</div>
+                                                        </div>
+                                                    </div>
+                                                </div><!-- .nk-notification -->
+                                            </div><!-- .nk-dropdown-body -->
+                                            <div class="dropdown-foot center">
+                                                <a href="#">View All</a>
+                                            </div>
+                                        </div>
+                                    </li><!-- .dropdown -->
+                                    <li class="d-lg-none">
+                                        <a href="#" class="toggle nk-quick-nav-icon me-n1" data-target="sideNav"><em class="icon ni ni-menu"></em></a>
+                                    </li>
+                                </ul><!-- .nk-quick-nav -->
+                            </div><!-- .nk-header-tools -->
+                        </div><!-- .nk-header-wrap -->
+                    </div><!-- .container-fliud -->
+                </div>
+                <!-- content @s -->
                 <div class="nk-content">
                     <div class="container wide-xl">
                         <div class="nk-content-inner">
                             <div class="nk-aside" data-content="sideNav" data-toggle-overlay="true" data-toggle-screen="lg" data-toggle-body="true">
-                                <div class="nk-sidebar-menu" data-simplebar>
-                                    <ul class="nk-menu">
-                                        <li class="nk-menu-heading">
-                                            <h6 class="overline-title text-primary-alt">Your Conversations</h6>
-                                        </li>
-                                        {% for chat in all_chats %}
-                                        <li class="nk-menu-item {% if chat.id == current_chat.id %}active{% endif %}">
-                                            <a href="{% url 'tools:chat_detail' chat.id %}" class="nk-menu-link">
-                                                <span class="nk-menu-icon"><em class="icon ni ni-chat-circle"></em></span>
-                                                <span class="nk-menu-text">{{ chat.title }}</span>
-                                            </a>
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                            </div>
+                                <!-- Your existing sidebar code here -->
+                            </div><!-- .nk-aside -->
                             <div class="nk-content-body">
                                 <div class="nk-content-wrap">
-                                    <div class="nk-block-head nk-block-head-sm">
+                                    <div class="nk-block-head nk-block-head-md">
                                         <div class="nk-block-between">
                                             <div class="nk-block-head-content">
-                                                <h3 class="nk-block-title page-title">Chat with AI</h3>
-                                            </div>
+                                                <h3 class="nk-block-title page-title">Chats</h3>
+                                            </div><!-- .nk-block-head-content -->
                                             <div class="nk-block-head-content">
-                                                <div class="toggle-wrap nk-block-tools-toggle">
-                                                    <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu"><em class="icon ni ni-more-v"></em></a>
-                                                    <div class="toggle-expand-content" data-content="pageMenu">
-                                                        <ul class="nk-block-tools g-3">
-                                                            <li>
-                                                                <div class="drodown">
-                                                                    <a href="#" class="dropdown-toggle btn btn-white btn-dim btn-outline-light" data-bs-toggle="dropdown"><em class="d-none d-sm-inline icon ni ni-calender-date"></em><span><span class="d-none d-md-inline">Select</span> AI Model</span><em class="dd-indc icon ni ni-chevron-right"></em></a>
+                                                <a href="{% url 'web:index' %}" class="back-to"><em class="icon ni ni-arrow-left"></em><span><span class="d-none d-sm-inline-block">Back to</span> Dashboard</span></a>
+                                            </div><!-- .nk-block-head-content -->
+                                        </div><!-- .nk-block-between -->
+                                    </div><!-- .nk-block-head -->
+                                    <div class="nk-chat nk-chat-boxed">
+                                        <div class="nk-chat-aside">
+                                            <div class="nk-chat-aside-head d-flex justify-content-between align-items-center">
+    <div class="nk-chat-aside-user">
+        <div class="dropdown">
+            <a href="#" class="dropdown-toggle dropdown-indicator" data-bs-toggle="dropdown">
+                <div class="title">AI Provider: <span id="current-provider">Claude</span></div>
+            </a>
+            <div class="dropdown-menu">
+                <ul class="link-list-opt no-bdr">
+                    {% for service in ai_services %}
+                    <li><a href="#" class="dropdown-item" data-provider="{{ service }}"><span>{{ service|title }}</span></a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <ul class="nk-chat-aside-tools g-2">
+        <li>
+            <a href="{% url 'tools:new_conversation' %}" class="btn btn-round btn-icon btn-light new-chat-btn">
+                <em class="icon ni ni-plus-circle-fill"></em>
+            </a>
+        </li>
+    </ul>
+</div>
+                                            <div class="nk-chat-aside-body" data-simplebar>
+                                                <div class="nk-chat-aside-search">
+                                                    <div class="form-group">
+                                                        <div class="form-control-wrap">
+                                                            <div class="form-icon form-icon-left">
+                                                                <em class="icon ni ni-search"></em>
+                                                            </div>
+                                                            <input type="text" class="form-control form-round" id="default-03" placeholder="Search by name">
+                                                        </div>
+                                                    </div>
+                                                </div><!-- .nk-chat-aside-search -->
+
+                                                <div class="nk-chat-list">
+                                                    <h6 class="title overline-title-alt">Messages</h6>
+                                                    <ul class="chat-list">
+                                                        {% for chat in all_chats %}
+                                                        <li class="chat-item {% if chat.id == current_chat.id %}active{% endif %}">
+                                                            <a class="chat-link chat-open" href="{% url 'tools:chat_detail' chat.id %}">
+                                                                <div class="chat-info">
+                                                                    <div class="chat-from">
+                                                                        <div class="name">{{ chat.title }}<br>
+                                                                        <small class="time">{{ chat.created_at|date:'d M, Y' }}</small></div>
+                                                                    </div>
+                                                                </div>
+                                                            </a>
+                                                            <div class="chat-actions">
+                                                                <div class="dropdown">
+                                                                    <a href="#" class="btn btn-icon btn-sm btn-trigger dropdown-toggle" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
                                                                     <div class="dropdown-menu dropdown-menu-end">
                                                                         <ul class="link-list-opt no-bdr">
-                                                                            {% for service in ai_services %}
-                                                                            <li><a href="#" data-service="{{ service }}"><span>{{ service|title }}</span></a></li>
-                                                                            {% endfor %}
+                                                                            <li><a href="#" data-action="clear-conversation" data-id="{{ chat.id }}">Clear</a></li>
+                                                                            <li><a href="#" data-action="delete-conversation" data-id="{{ chat.id }}">Delete</a></li>
                                                                         </ul>
                                                                     </div>
                                                                 </div>
-                                                            </li>
-                                                            <li class="nk-block-tools-opt"><a href="{% url 'tools:new_conversation' %}" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>New Chat</span></a></li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
+                                                            </div>
+                                                        </li><!-- .chat-item -->
+                                                            <hr>
+                                                        {% endfor %}
+                                                    </ul><!-- .chat-list -->
+                                                </div><!-- .nk-chat-list -->
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div class="nk-chat">
-                                        <div class="nk-chat-body">
-                                            <div class="nk-chat-panel" data-simplebar>
-                                                {% for message in messages %}
-                                                <div class="chat {% if message.is_user %}is-you{% else %}is-me{% endif %}">
-                                                    <div class="chat-content">
-                                                        <div class="chat-bubbles">
-                                                            <div class="chat-bubble">
-                                                                {% if message.content|slice:":3" == "```" and message.content|slice:"-3:" == "```" %}
-                                                                    <div class="chat-msg chat-code">{{ message.content|slice:"3:-3" }}</div>
-                                                                {% else %}
-                                                                    <div class="chat-msg">{{ message.content }}</div>
-                                                                {% endif %}
+                                        </div><!-- .nk-chat-aside -->
+                                        <div class="nk-chat-body profile-shown">
+                                            <div class="nk-chat-head">
+                                                <ul class="nk-chat-head-info">
+                                                    <li class="nk-chat-body-close">
+                                                        <a href="#" class="btn btn-icon btn-trigger nk-chat-hide ms-n1"><em class="icon ni ni-arrow-left"></em></a>
+                                                    </li>
+                                                    <li class="nk-chat-head-user">
+                                                        <div class="user-card">
+                                                            <div class="user-info">
+                                                                <div class="lead-text">Claude AI</div>
                                                             </div>
                                                         </div>
-                                                        <ul class="chat-meta">
-                                                            <li>{% if message.is_user %}You{% else %}{{ message.ai_service|default:"AI"|title }}{% endif %}</li>
-                                                            <li>{{ message.timestamp|date:"d M, Y H:i" }}</li>
+                                                    </li>
+                                                </ul>
+
+                                                <div class="nk-chat-head-search">
+                                                    <div class="form-group">
+                                                        <div class="form-control-wrap">
+                                                            <div class="form-icon form-icon-left">
+                                                                <em class="icon ni ni-search"></em>
+                                                            </div>
+                                                            <input type="text" class="form-control form-round" id="chat-search" placeholder="Search in Conversation">
+                                                        </div>
+                                                    </div>
+                                                </div><!-- .nk-chat-head-search -->
+                                            </div><!-- .nk-chat-head -->
+                                            <div class="nk-chat-panel" data-simplebar>
+    {% for message in messages %}
+        <div class="chat {% if message.is_user %}is-you{% else %}is-me{% endif %}">
+            <div class="chat-content">
+                <div class="chat-bubbles">
+                    <div class="chat-bubble">
+                        {% if message.content|slice:":3" == "```" and message.content|slice:"-3:" == "```" %}
+                            <code class="chat-msg chat-code">{{ message.content | move_code_section |safe }}</code>
+                        {% else %}
+                            <div class="chat-msg">{{ message.content|move_code_section |safe }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <ul class="chat-meta">
+                    <li>{% if message.is_user %}You{% else %}{{ message.ai_service|default:"AI"|title }}{% endif %}</li>
+                    <li>{{ message.timestamp|date:"d M, Y H:i" }}</li>
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+                                            <div class="nk-chat-editor">
+                                                <div class="nk-chat-editor-upload  ms-n1">
+                                                    <a href="#" class="btn btn-sm btn-icon btn-trigger text-primary toggle-opt" data-target="chat-upload"><em class="icon ni ni-plus-circle-fill"></em></a>
+                                                    <div class="chat-upload-option" data-content="chat-upload">
+                                                        <ul class="">
+                                                            <li><a href="#"><em class="icon ni ni-img-fill"></em></a></li>
+                                                            <li><a href="#"><em class="icon ni ni-camera-fill"></em></a></li>
+                                                            <li><a href="#"><em class="icon ni ni-mic"></em></a></li>
+                                                            <li><a href="#"><em class="icon ni ni-grid-sq"></em></a></li>
                                                         </ul>
                                                     </div>
                                                 </div>
-                                                {% endfor %}
-                                            </div>
-                                            <div class="nk-chat-editor">
                                                 <div class="nk-chat-editor-form">
                                                     <div class="form-control-wrap">
-                                                        <textarea class="form-control form-control-simple no-resize" rows="1" id="chat-message" placeholder="Type your message..."></textarea>
+                                                        <textarea class="form-control form-control-simple no-resize" rows="1" id="default-textarea" placeholder="Type your message..."></textarea>
                                                     </div>
                                                 </div>
                                                 <ul class="nk-chat-editor-tools g-2">
                                                     <li>
-                                                        <button id="send-message" class="btn btn-round btn-primary btn-icon"><em class="icon ni ni-send-alt"></em></button>
+                                                        <a href="#" class="btn btn-sm btn-icon btn-trigger text-primary"><em class="icon ni ni-happyf-fill"></em></a>
+                                                    </li>
+                                                    <li>
+                                                        <button class="btn btn-round btn-primary btn-icon" id="send-message"><em class="icon ni ni-send-alt"></em></button>
+                                                    </li>
+                                                </ul>
+                                            </div><!-- .nk-chat-editor -->
+                                        </div><!-- .nk-chat-body -->
+                                    </div><!-- .nk-chat -->
+                                </div>
+                                <!-- Your existing footer code here -->
+                                <div class="nk-footer">
+                                    <div class="container wide-xl">
+                                        <div class="nk-footer-wrap g-2">
+                                            <div class="nk-footer-copyright"> &copy; 2023 DashLite. Template by <a href="https://softnio.com" target="_blank">Softnio</a>
+                                            </div>
+                                            <div class="nk-footer-links">
+                                                <ul class="nav nav-sm">
+                                                    <li class="nav-item dropup">
+                                                        <a href="#" class="dropdown-toggle dropdown-indicator has-indicator nav-link text-base" data-bs-toggle="dropdown" data-offset="0,10"><span>English</span></a>
+                                                        <div class="dropdown-menu dropdown-menu-sm dropdown-menu-end">
+                                                            <ul class="language-list">
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">English</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">Español</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">Français</span>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="language-item">
+                                                                        <span class="language-name">Türkçe</span>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a data-bs-toggle="modal" href="#region" class="nav-link"><em class="icon ni ni-globe"></em><span class="ms-1">Select Region</span></a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -118,199 +420,195 @@
                                     </div>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
+                <!-- content @e -->
             </div>
+            <!-- wrap @e -->
         </div>
+        <!-- main @e -->
     </div>
-    
+    <!-- app-root @e -->
+    <!-- JavaScript -->
     <script src="{% static 'dashboard/assets/js/bundle.js' %}"></script>
     <script src="{% static 'dashboard/assets/js/scripts.js' %}"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const chatPanel = document.querySelector('.nk-chat-panel');
-        const messageInput = document.getElementById('chat-message');
-        const sendButton = document.getElementById('send-message');
-        const aiServiceDropdown = document.querySelector('.dropdown-menu');
-        const conversationTitle = document.querySelector('.nk-block-title.page-title');
-        const sidebarConversationList = document.querySelector('.nk-menu');
-    
-        let currentAiService = 'claude';  // Default AI service
-        const currentChatId = '{{ current_chat.id }}';  // Get the current chat ID from the template context
-    
-        function scrollToBottom() {
-            chatPanel.scrollTop = chatPanel.scrollHeight;
-        }
-    
-        function addMessageToChat(content, isUser, aiService = '') {
-            const chatDiv = document.createElement('div');
-            chatDiv.className = `chat ${isUser ? 'is-you' : 'is-me'}`;
-            
-            let messageContent;
-            if (content.startsWith('```') && content.endsWith('```')) {
-                messageContent = `<div class="chat-msg chat-code">${content.slice(3, -3)}</div>`;
-            } else {
-                messageContent = `<div class="chat-msg">${content}</div>`;
-            }
-            
-            chatDiv.innerHTML = `
-                <div class="chat-content">
-                    <div class="chat-bubbles">
-                        <div class="chat-bubble">
-                            ${messageContent}
-                        </div>
-                    </div>
-                    <ul class="chat-meta">
-                        <li>${isUser ? 'You' : aiService || 'AI'}</li>
-                        <li>${new Date().toLocaleString()}</li>
-                    </ul>
-                </div>
-            `;
-            chatPanel.appendChild(chatDiv);
-            scrollToBottom();
-        }
-    
-        function updateConversationTitle(newTitle) {
-            // Update the title in the header
-            if (conversationTitle) {
-                conversationTitle.textContent = newTitle;
-            }
-    
-            // Update the title in the sidebar
-            const sidebarItem = sidebarConversationList.querySelector(`[data-conversation-id="${currentChatId}"]`);
-            if (sidebarItem) {
-                const titleSpan = sidebarItem.querySelector('.nk-menu-text');
-                if (titleSpan) {
-                    titleSpan.textContent = newTitle;
-                }
-            }
-        }
-    
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            if (message) {
-                addMessageToChat(message, true);
-                messageInput.value = '';
-    
-                fetch(`{% url 'tools:send_message' conversation_id=current_chat.id %}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: new URLSearchParams({
-                        'message': message,
-                        'ai_service': currentAiService
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message) {
-                        addMessageToChat(data.message, false, currentAiService);
-                        if (data.title) {
-                            updateConversationTitle(data.title);
-                        }
-                    } else if (data.error) {
-                        addMessageToChat(`Error: ${data.error}`, false, 'System');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    addMessageToChat('An error occurred while sending the message.', false, 'System');
-                });
-            }
-        }
-    
-        sendButton.addEventListener('click', sendMessage);
-    
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-    
-        aiServiceDropdown.addEventListener('click', function(e) {
-            if (e.target.tagName === 'A' && e.target.dataset.service) {
-                currentAiService = e.target.dataset.service;
-                document.querySelector('.btn.btn-white .d-none.d-md-inline').textContent = currentAiService;
-            }
-        });
-    
-        // New Conversation button
-        const newConversationButton = document.querySelector('[href="{% url 'tools:new_conversation' %}"]');
-        if (newConversationButton) {
-            newConversationButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                fetch(this.href, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            });
-        }
-    
-        // Delete Conversation button
-        const deleteConversationButton = document.querySelector('[data-action="delete-conversation"]');
-        if (deleteConversationButton) {
-            deleteConversationButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (confirm('Are you sure you want to delete this conversation?')) {
-                    fetch(`{% url 'tools:delete_conversation' conversation_id=current_chat.id %}`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': '{{ csrf_token }}',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.redirect) {
-                            window.location.href = data.redirect;
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-                }
-            });
-        }
-    
-        // Clear Conversation button
-        const clearConversationButton = document.querySelector('[data-action="clear-conversation"]');
-        if (clearConversationButton) {
-            clearConversationButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (confirm('Are you sure you want to clear this conversation?')) {
-                    fetch(`{% url 'tools:clear_conversation' conversation_id=current_chat.id %}`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': '{{ csrf_token }}',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            chatPanel.innerHTML = '';
-                            addMessageToChat('Conversation cleared.', false, 'System');
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-                }
-            });
-        }
-    
-        scrollToBottom();
-    });
-    </script>
-</body>
+        document.addEventListener('DOMContentLoaded', function() {
+    // DOM elements
+    const chatPanel = document.querySelector('.nk-chat-panel');
+    const messageInput = document.getElementById('default-textarea');
+    const sendButton = document.querySelector('.nk-chat-editor .btn-primary');
+    const providerDropdown = document.querySelector('.nk-chat-aside-user .dropdown-menu');
+    const currentProviderSpan = document.getElementById('current-provider');
+    const chatList = document.querySelector('.chat-list');
+    const newChatButton = document.querySelector('.new-chat-btn');
 
-</html>
+    // Variables
+    let currentProvider = 'Claude';  // Default provider
+    let currentChatId = '{{ current_chat.id }}';  // Get the current chat ID from the template context
+
+    // Functions
+    function scrollToBottom() {
+        chatPanel.scrollTop = chatPanel.scrollHeight;
+    }
+
+    function addMessageToChat(content, isUser, provider = '') {
+        const chatDiv = document.createElement('div');
+        chatDiv.className = `chat ${isUser ? 'is-you' : 'is-me'}`;
+
+        let messageContent;
+        if (content.startsWith('```') && content.endsWith('```')) {
+            messageContent = `<div class="chat-msg chat-code">${content.slice(3, -3)}</div>`;
+        } else {
+            messageContent = `<div class="chat-msg">${content}</div>`;
+        }
+
+        chatDiv.innerHTML = `
+            <div class="chat-content">
+                <div class="chat-bubbles">
+                    <div class="chat-bubble">
+                        ${messageContent}
+                    </div>
+                </div>
+                <ul class="chat-meta">
+                    <li>${isUser ? 'You' : provider || 'AI'}</li>
+                    <li>${new Date().toLocaleString()}</li>
+                </ul>
+            </div>
+        `;
+        chatPanel.appendChild(chatDiv);
+        scrollToBottom();
+    }
+
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message) {
+            addMessageToChat(message, true);
+            messageInput.value = '';
+
+            fetch(`/tools/${currentChatId}/send/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    'message': message,
+                    'ai_provider': currentProvider
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    addMessageToChat(data.message, false, currentProvider);
+                } else if (data.error) {
+                    addMessageToChat(`Error: ${data.error}`, false, 'System');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessageToChat('An error occurred while sending the message.', false, 'System');
+            });
+        }
+    }
+
+    function clearConversation(chatId) {
+        if (confirm('Are you sure you want to clear this conversation?')) {
+            fetch(`/tools/${chatId}/clear/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (chatId === currentChatId) {
+                        chatPanel.innerHTML = '';
+                        addMessageToChat('Conversation cleared.', false, 'System');
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }
+
+    function deleteConversation(chatId) {
+        if (confirm('Are you sure you want to delete this conversation?')) {
+            fetch(`/tools/${chatId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const chatItem = chatList.querySelector(`.chat-item a[href*="${chatId}"]`).closest('.chat-item');
+                    chatItem.remove();
+                    if (chatId === currentChatId) {
+                        window.location.href = '/tools/'; // Redirect to the main chat page
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Event Listeners
+    sendButton.addEventListener('click', sendMessage);
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    providerDropdown.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = e.target.closest('.dropdown-item');
+        if (target && target.dataset.provider) {
+            currentProvider = target.dataset.provider;
+            currentProviderSpan.textContent = currentProvider;
+        }
+    });
+
+    chatList.addEventListener('click', function(e) {
+        const target = e.target.closest('[data-action]');
+        if (target) {
+            e.preventDefault();
+            const action = target.dataset.action;
+            const chatId = target.dataset.id;
+            if (action === 'clear-conversation') {
+                clearConversation(chatId);
+            } else if (action === 'delete-conversation') {
+                deleteConversation(chatId);
+            }
+        }
+    });
+
+    // Initial setup
+    scrollToBottom();
+});
+    </script>

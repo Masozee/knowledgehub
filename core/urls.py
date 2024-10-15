@@ -30,6 +30,7 @@ urlpatterns = [
     path('project/', include('app.project.url')),
     path('publications/', include('app.publications.url')),
     path('events/', include('app.events.url')),
+    path('ckeditor5/', include('django_ckeditor_5.urls')),
 
 ]
 

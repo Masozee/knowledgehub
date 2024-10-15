@@ -146,3 +146,75 @@ Ensure compliance with data protection regulations (e.g., GDPR) when collecting 
 ## License
 
 [Add license information]
+
+<ul class="nk-chat-aside-tools g-2">
+                            <li>
+                                <a href="{% url 'tools:new_conversation' %}" class="btn btn-round btn-icon btn-light new-chat-btn">
+                                    <em class="icon ni ni-plus-circle-fill"></em>
+                                </a>
+                            </li>
+                        </ul>
+
+<div class="nk-chat-aside">
+                                                        <div class="nk-chat-aside-head">
+                                                            <div class="nk-chat-aside-user">
+                                                                <div class="dropdown">
+                                                                    <a href="#" class="dropdown-toggle dropdown-indicator" data-bs-toggle="dropdown">
+                                                                        <div class="title">AI Service</div>
+                                                                    </a>
+                                                                    <div class="dropdown-menu">
+                                                                        <ul class="link-list-opt no-bdr">
+                                                                            {% for service in ai_services %}
+                                                                            <li><a href="#" data-service="{{ service }}"><span>{{ service|title }}</span></a></li>
+                                                                            {% endfor %}
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <ul class="nk-chat-aside-tools g-2">
+                                                                <li>
+                                                                    <a href="{% url 'tools:new_conversation' %}" class="btn btn-round btn-icon btn-light new-chat-btn">
+                                                                        <em class="icon ni ni-plus-circle-fill"></em>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="nk-chat-aside-body" data-simplebar>
+                                                            <div class="nk-chat-list">
+                                                                <h6 class="title overline-title-alt">Chat List</h6>
+                                                                <ul class="chat-list">
+                                                                    {% for chat in all_chats %}
+                                                                    <li class="chat-item">
+                                                                        <a class="chat-link" href="#" data-id="{{ chat.id }}">
+                                                                            <div class="chat-media user-avatar">
+                                                                                <span>{{ chat.title|slice:":2" }}</span>
+                                                                            </div>
+                                                                            <div class="chat-info">
+                                                                                <div class="chat-from">
+                                                                                    <div class="name">{{ chat.title }}</div>
+                                                                                    <span class="time">{{ chat.updated_at|date:"M d, Y" }}</span>
+                                                                                </div>
+                                                                                <div class="chat-context">
+                                                                                    <div class="text">
+                                                                                        <p>{{ chat.last_message|truncatechars:30 }}</p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </a>
+                                                                        <div class="chat-actions">
+                                                                            <div class="dropdown">
+                                                                                <a href="#" class="btn btn-icon btn-sm btn-trigger dropdown-toggle" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
+                                                                                <div class="dropdown-menu dropdown-menu-end">
+                                                                                    <ul class="link-list-opt no-bdr">
+                                                                                        <li><a href="#" data-action="clear-conversation" data-id="{{ chat.id }}"><em class="icon ni ni-reload"></em><span>Clear Conversation</span></a></li>
+                                                                                        <li><a href="#" data-action="delete-conversation" data-id="{{ chat.id }}"><em class="icon ni ni-trash"></em><span>Delete Conversation</span></a></li>
+                                                                                    </ul>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </li>
+                                                                    {% endfor %}
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
