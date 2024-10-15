@@ -1,4 +1,4 @@
-from .base import *
+from .core import *
 
 DEBUG = True
 SECRET_KEY = config('SECRET_KEY')
