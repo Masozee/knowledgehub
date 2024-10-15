@@ -89,7 +89,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+LOGIN_REDIRECT_URL = 'web:index'  # Redirect to dashboard after login
+LOGOUT_REDIRECT_URL = 'web:index'  # Redirect to dashboard after logout
 
+# If you want to use custom templates, uncomment and modify these lines:
+LOGIN_URL = 'login'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -141,7 +145,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Jakarta'
 
 USE_I18N = True
 

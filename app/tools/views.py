@@ -33,12 +33,29 @@ openai.api_key = settings.OPENAI_API_KEY
 @login_required
 def chat_list(request):
     conversations = Conversation.objects.filter(user=request.user).order_by('-updated_at')
-    return render(request, 'chat/chat_list.html', {'conversations': conversations})
 
+    # Prepare conversation data with UUID
+    conversation_data = [
+        {
+            'uuid': str(conv.uuid),
+            'title': conv.title,
+            'created_at': conv.created_at,
+            'updated_at': conv.updated_at,
+            'is_cleared': conv.is_cleared,
+            'is_deleted': conv.is_deleted,
+            'full_path': conv.full_path,  # Assuming you've added the full_path property to your model
+        }
+        for conv in conversations
+    ]
+
+    context = {
+        'conversations': conversation_data,
+    }
+    return render(request, 'dashboard/chat/index.html', context)
 
 @login_required
-def chat_detail(request, conversation_id):
-    conversation = get_object_or_404(Conversation, id=conversation_id, user=request.user)
+def chat_detail(request, conversation_uuid):
+    conversation = get_object_or_404(Conversation, uuid=conversation_uuid, user=request.user)
     messages = conversation.messages.order_by('timestamp')
     all_chats = Conversation.objects.filter(user=request.user).order_by('-updated_at')
     ai_services = ['claude', 'openai', 'perplexity']  # Add or remove services as needed
@@ -58,23 +75,23 @@ def new_conversation(request):
         conversation = Conversation.objects.create(user=request.user)
         return JsonResponse({
             'chat': {
-                'id': conversation.id,
+                'uuid': str(conversation.uuid),
                 'title': conversation.title,
                 'created_at': conversation.created_at.isoformat()
             }
         })
     else:
         conversation = Conversation.objects.create(user=request.user)
-        return redirect('tools:chat_detail', conversation_id=conversation.id)
+        return redirect('tools:chat_detail', conversation_uuid=conversation.uuid)
 
 
 @login_required
 @require_POST
-def send_message(request, conversation_id):
+def send_message(request, conversation_uuid):
     if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'error': 'Invalid request'}, status=400)
 
-    conversation = get_object_or_404(Conversation, id=conversation_id, user=request.user)
+    conversation = get_object_or_404(Conversation, uuid=conversation_uuid, user=request.user)
     user_message = request.POST.get('message')
     ai_service = request.POST.get('ai_service', 'claude')
 
@@ -239,14 +256,14 @@ def generate_title(first_message, ai_service):
     return f"{first_message[:20]}..."
 
 @login_required
-def delete_conversation(request, conversation_id):
-    conversation = get_object_or_404(Conversation, id=conversation_id, user=request.user)
-    conversation.delete()
-    return redirect('web:index')
+def delete_conversation(request, conversation_uuid):
+    conversation = get_object_or_404(Conversation, uuid=conversation_uuid, user=request.user)
+    conversation.delete_conversation()
+    return redirect('tools:chatlist')
 
 
 @login_required
-def clear_conversation(request, conversation_id):
-    conversation = get_object_or_404(Conversation, id=conversation_id, user=request.user)
-    conversation.messages.all().delete()
-    return redirect('web:chat_detail', conversation_id=conversation_id)
+def clear_conversation(request, conversation_uuid):
+    conversation = get_object_or_404(Conversation, uuid=conversation_uuid, user=request.user)
+    conversation.clear_chat()
+    return redirect('tools:chat_detail', conversation_uuid=conversation.uuid)

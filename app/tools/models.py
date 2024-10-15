@@ -1,4 +1,5 @@
 import os
+import uuid
 import subprocess
 from django.db import models, connection
 from django.conf import settings
@@ -7,6 +8,7 @@ from decouple import config
 from django.utils.text import slugify
 from django.utils import timezone
 from django_ckeditor_5.fields import CKEditor5Field
+from django.urls import reverse
 
 
 class DatabaseBackup(models.Model):
@@ -108,15 +110,17 @@ class AnalyticsVisitorData(models.Model):
         app_label = 'tools'
 
 class Conversation(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     slug = models.SlugField(unique=True, max_length=255, blank=True)
+    is_cleared = models.BooleanField(default=False, blank=True, null=True)
+    is_deleted = models.BooleanField(default=False, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.title:
-            # Use current time if created_at is not set yet
             current_time = self.created_at or timezone.now()
             self.title = f"Conversation {current_time.strftime('%Y-%m-%d %H:%M')}"
 
@@ -128,12 +132,21 @@ class Conversation(models.Model):
     def __str__(self):
         return self.title
 
-    def update_title(self, new_title):
-        self.title = new_title
-        self.slug = slugify(new_title)
+    def clear_chat(self):
+        self.messages.all().delete()
+        self.is_cleared = True
         self.save()
 
+    def delete_conversation(self):
+        self.is_deleted = True
+        self.save()
+
+    @property
+    def full_path(self):
+        return reverse('tools:chat_detail', kwargs={'conversation_uuid': str(self.uuid)})
+
 class Message(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     AI_SERVICE_CHOICES = [
         ('claude', 'Claude'),
         ('openai', 'OpenAI'),
@@ -145,7 +158,7 @@ class Message(models.Model):
     is_user = models.BooleanField()
     ai_service = models.CharField(max_length=20, choices=AI_SERVICE_CHOICES, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    metadata = models.JSONField(null=True, blank=True)  # For storing additional data like tokens used, etc.
+    metadata = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return f"{'User' if self.is_user else 'AI'} message in {self.conversation.title}"

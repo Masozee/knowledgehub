@@ -5,9 +5,10 @@ app_name = 'tools'
 
 urlpatterns = [
     path('test-logging/', views.test_logging, name='test_logging'),
-    path('new/', views.new_conversation, name='new_conversation'),
-    path('<int:conversation_id>/', views.chat_detail, name='chat_detail'),
-    path('<int:conversation_id>/send/', views.send_message, name='send_message'),
-    path('<int:conversation_id>/delete/', views.delete_conversation, name='delete_conversation'),
-    path('<int:conversation_id>/clear/', views.clear_conversation, name='clear_conversation'),
+    path('chat/', views.chat_list, name='chatlist'),
+    path('chat/new/', views.new_conversation, name='new_conversation'),
+    path('chat/<uuid:conversation_uuid>/', views.chat_detail, name='chat_detail'),
+    path('chat/<uuid:conversation_uuid>/send/', views.send_message, name='send_message'),
+    path('chat/<uuid:conversation_uuid>/delete/', views.delete_conversation, name='delete_conversation'),
+    path('chat/<uuid:conversation_uuid>/clear/', views.clear_conversation, name='clear_conversation'),
 ]
