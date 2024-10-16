@@ -17,7 +17,7 @@ media
 .idea/
 
 # Environment variables
-.env.local
+.env
 
 # Static files
 /staticfiles/

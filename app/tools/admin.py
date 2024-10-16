@@ -1,58 +1,86 @@
 from django.contrib import admin
-from django.contrib import messages
-from .models import DatabaseBackup
-from django.contrib import admin
-from django.contrib.auth import get_user_model
-from .models import Conversation, Message
+from django.utils.html import format_html
+from django.urls import reverse
+from django.contrib.contenttypes.admin import GenericTabularInline
+from .models import Conversation, Message, TextContent, CodeContent, ImageContent
 
-@admin.register(DatabaseBackup)
-class DatabaseBackupAdmin(admin.ModelAdmin):
-    list_display = ('file_name', 'timestamp', 'file_size', 'formatted_file_size')
-    list_filter = ('timestamp',)
-    search_fields = ('file_name',)
-    readonly_fields = ('timestamp', 'file_name', 'file_size', 'formatted_file_size')
-    ordering = ('-timestamp',)
-    actions = ['restore_backup']
+class MessageInline(GenericTabularInline):
+    model = Message
+    extra = 0
+    fields = ('is_user', 'ai_service', 'content_preview')
+    readonly_fields = ('content_preview',)
 
-    def formatted_file_size(self, obj):
-        size = obj.file_size
-        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-            if size < 1024.0:
-                return f"{size:.2f} {unit}"
-            size /= 1024.0
-        return f"{size:.2f} PB"
-    formatted_file_size.short_description = 'File Size'
+    def content_preview(self, obj):
+        content = obj.content_object
+        if isinstance(content, TextContent):
+            return content.text[:50] + '...' if len(content.text) > 50 else content.text
+        elif isinstance(content, CodeContent):
+            return f"Code ({content.language}): {content.code[:50]}..."
+        elif isinstance(content, ImageContent):
+            return format_html('<img src="{}" style="max-width:100px; max-height:100px;" />', content.image.url)
+        return "Unknown content type"
 
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def restore_backup(self, request, queryset):
-        if queryset.count() != 1:
-            self.message_user(request, "Please select exactly one backup to restore.", level=messages.WARNING)
-            return
-
-        backup = queryset.first()
-        try:
-            backup.restore()
-            self.message_user(request, f"Successfully restored database from backup: {backup.file_name}", level=messages.SUCCESS)
-        except Exception as e:
-            self.message_user(request, f"Error restoring database: {str(e)}", level=messages.ERROR)
-
-    restore_backup.short_description = "Restore selected backup"
-
-
-
-User = get_user_model()
+    content_preview.short_description = 'Content Preview'
 
 @admin.register(Conversation)
 class ConversationAdmin(admin.ModelAdmin):
-    list_display = ('title', 'user', 'created_at', 'updated_at')
-    prepopulated_fields = {'slug': ('title',)}
+    list_display = ('title', 'user', 'created_at', 'updated_at', 'is_cleared', 'is_deleted', 'message_count')
+    list_filter = ('user', 'created_at', 'updated_at', 'is_cleared', 'is_deleted')
+    search_fields = ('title', 'user__username')
+    readonly_fields = ('uuid', 'created_at', 'updated_at', 'message_count')
+    inlines = [MessageInline]
+
+    def message_count(self, obj):
+        return obj.messages.count()
+    message_count.short_description = 'Number of Messages'
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('conversation', 'is_user', 'ai_service', 'timestamp')
-    list_filter = ('is_user', 'ai_service')
+    list_display = ('conversation_link', 'is_user', 'ai_service', 'timestamp', 'content_type', 'content_preview')
+    list_filter = ('is_user', 'ai_service', 'timestamp')
+    search_fields = ('conversation__title', 'ai_service')
+    readonly_fields = ('conversation_link', 'content_preview')
+
+    def conversation_link(self, obj):
+        url = reverse('admin:tools_conversation_change', args=[obj.conversation.id])
+        return format_html('<a href="{}">{}</a>', url, obj.conversation.title)
+    conversation_link.short_description = 'Conversation'
+
+    def content_preview(self, obj):
+        content = obj.content_object
+        if isinstance(content, TextContent):
+            return content.text[:100] + '...' if len(content.text) > 100 else content.text
+        elif isinstance(content, CodeContent):
+            return f"Code ({content.language}): {content.code[:100]}..."
+        elif isinstance(content, ImageContent):
+            return format_html('<img src="{}" style="max-width:200px; max-height:200px;" />', content.image.url)
+        return "Unknown content type"
+    content_preview.short_description = 'Content Preview'
+
+@admin.register(TextContent)
+class TextContentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'text_preview')
+    search_fields = ('text',)
+
+    def text_preview(self, obj):
+        return obj.text[:100] + '...' if len(obj.text) > 100 else obj.text
+    text_preview.short_description = 'Text Preview'
+
+@admin.register(CodeContent)
+class CodeContentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'language', 'code_preview')
+    list_filter = ('language',)
+    search_fields = ('code',)
+
+    def code_preview(self, obj):
+        return obj.code[:100] + '...' if len(obj.code) > 100 else obj.code
+    code_preview.short_description = 'Code Preview'
+
+@admin.register(ImageContent)
+class ImageContentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'caption', 'image_preview')
+    search_fields = ('caption',)
+
+    def image_preview(self, obj):
+        return format_html('<img src="{}" style="max-width:100px; max-height:100px;" />', obj.image.url)
+    image_preview.short_description = 'Image Preview'

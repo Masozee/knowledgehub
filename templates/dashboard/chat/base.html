@@ -16,29 +16,9 @@
     <!-- StyleSheets  -->
     <link rel="stylesheet" href="{% static 'dashboard/assets/css/dashlite.css' %}">
     <link id="skin-default" rel="stylesheet" href="{% static 'dashboard/assets/css/theme.css' %}">
-    <style>
-        /* Style for inline code */
-        code {
-            border-radius: 3px;
-            padding: 2px 4px;
-            font-family: "Courier New", Courier, monospace;
-            color: #c7254e;
-            font-size: 14px;
-        }
-
-        /* Style for block code */
-        .chat-code {
-            background-color: #28853e; /* Black background for code blocks */
-            color: #faf8f8; /* Light text color */
-            padding: 10px;
-            border-radius: 5px;
-            font-family: "Courier New", Courier, monospace;
-            font-size: 14px;
-            white-space: pre-wrap; /* Preserve line breaks */
-            overflow-x: auto; /* Allow horizontal scrolling if the code is too wide */
-        }
-
-    </style>
+    
+    {% block css %}
+    {% endblock %}
 </head>
 
 <body class="nk-body bg-white npc-default apps-only ">

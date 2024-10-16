@@ -9,6 +9,8 @@ from django.utils.text import slugify
 from django.utils import timezone
 from django_ckeditor_5.fields import CKEditor5Field
 from django.urls import reverse
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 
 class DatabaseBackup(models.Model):
@@ -145,6 +147,10 @@ class Conversation(models.Model):
     def full_path(self):
         return reverse('tools:chat_detail', kwargs={'conversation_uuid': str(self.uuid)})
 
+    def update_title(self, new_title):
+        self.title = new_title
+        self.save()
+
 class Message(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     AI_SERVICE_CHOICES = [
@@ -154,14 +160,33 @@ class Message(models.Model):
     ]
 
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
-    content = CKEditor5Field('Text', config_name='extends')
     is_user = models.BooleanField()
     ai_service = models.CharField(max_length=20, choices=AI_SERVICE_CHOICES, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     metadata = models.JSONField(null=True, blank=True)
+
+    # Use GenericForeignKey to link to different content types
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     def __str__(self):
         return f"{'User' if self.is_user else 'AI'} message in {self.conversation.title}"
 
     class Meta:
         ordering = ['timestamp']
+
+class TextContent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    text = models.TextField()
+
+class CodeContent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    code = models.TextField()
+    language = models.CharField(max_length=50)
+
+class ImageContent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    image = models.ImageField(upload_to='ai_images/')
+    caption = models.CharField(max_length=255, blank=True)
+
