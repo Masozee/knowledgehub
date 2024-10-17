@@ -115,28 +115,28 @@
                                                 </div><!-- .nk-chat-head-search -->
                                             </div><!-- .nk-chat-head -->
                                             <div class="nk-chat-panel" data-simplebar>
-    {% for message in messages %}
-        <div class="chat {% if message.is_user %}is-you{% else %}is-me{% endif %}">
-            <div class="chat-content">
-                <div class="chat-bubbles">
-                    <div class="chat-bubble">
-                        {% if message.content_type.model == 'textcontent' %}
-                            <div class="chat-msg">{{ message.content_object.text|safe }}</div>
-                        {% elif message.content_type.model == 'codecontent' %}
-                            <pre><code class="language-{{ message.content_object.language }}">{{ message.content_object.code }}</code></pre>
-                        {% elif message.content_type.model == 'imagecontent' %}
-                            <img src="{{ message.content_object.image.url }}" alt="{{ message.content_object.caption }}" style="max-width: 100%; height: auto;">
-                        {% endif %}
-                    </div>
-                </div>
-                <ul class="chat-meta">
-                    <li>{% if message.is_user %}You{% else %}{{ message.ai_service|default:"AI"|title }}{% endif %}</li>
-                    <li>{{ message.timestamp|date:"d M, Y H:i" }}</li>
-                </ul>
-            </div>
-        </div>
-    {% endfor %}
-</div>
+                                                {% for message in messages %}
+                                                    <div class="chat {% if message.is_user %}is-you{% else %}is-me{% endif %}">
+                                                        <div class="chat-content">
+                                                            <div class="chat-bubbles">
+                                                                <div class="chat-bubble">
+                                                                    {% if message.content_type.model == 'textcontent' %}
+                                                                        <div class="chat-msg">{{ message.content_object.text|safe }}</div>
+                                                                    {% elif message.content_type.model == 'codecontent' %}
+                                                                        <pre><code class="language-{{ message.content_object.language }}">{{ message.content_object.code }}</code></pre>
+                                                                    {% elif message.content_type.model == 'imagecontent' %}
+                                                                        <img src="{{ message.content_object.image.url }}" alt="{{ message.content_object.caption }}" style="max-width: 100%; height: auto;">
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                            <ul class="chat-meta">
+                                                                <li>{% if message.is_user %}You{% else %}{{ message.ai_service|default:"AI"|title }}{% endif %}</li>
+                                                                <li>{{ message.timestamp|date:"d M, Y H:i" }}</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
                                             <div class="nk-chat-editor">
                                                 <div class="nk-chat-editor-upload  ms-n1">
                                                     <a href="#" class="btn btn-sm btn-icon btn-trigger text-primary toggle-opt" data-target="chat-upload"><em class="icon ni ni-plus-circle-fill"></em></a>
@@ -224,126 +224,139 @@
     const serializedMessages = {{ serialized_messages|safe }};
 </script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const chatPanel = document.querySelector('.nk-chat-panel');
-    const messageInput = document.getElementById('default-textarea');
-    const sendButton = document.querySelector('.nk-chat-editor .btn-primary');
-    let currentProvider = 'claude';  // Default provider
-    let currentChatId = '{{ current_chat.uuid }}';
-
-    function scrollToBottom() {
-        chatPanel.scrollTop = chatPanel.scrollHeight;
-    }
-
-    function addMessageToChat(content, isUser, provider = '', contentType = 'text', language = '', imageUrl = '') {
-        const chatDiv = document.createElement('div');
-        chatDiv.className = `chat ${isUser ? 'is-you' : 'is-me'}`;
-
-        let messageContent;
-        if (contentType === 'code') {
-            messageContent = `<pre><code class="language-${language} chat-code">${content}</code></pre>`;
-        } else if (contentType === 'image') {
-            messageContent = `<img src="${imageUrl}" alt="${content}" style="max-width: 100%; height: auto;">`;
-        } else {
-            messageContent = `<div class="chat-msg">${content}</div>`;
-        }
-
-        chatDiv.innerHTML = `
-            <div class="chat-content">
-                <div class="chat-bubbles">
-                    <div class="chat-bubble">
-                        ${messageContent}
-                    </div>
-                </div>
-                <ul class="chat-meta">
-                    <li>${isUser ? 'You' : provider || 'AI'}</li>
-                    <li>${new Date().toLocaleString()}</li>
-                </ul>
-            </div>
-        `;
-        chatPanel.appendChild(chatDiv);
-        scrollToBottom();
-
-        if (contentType === 'code' && window.Prism) {
-            Prism.highlightElement(chatDiv.querySelector('code'));
-        }
-    }
-
-    function sendMessage() {
-        const message = messageInput.value.trim();
-        if (message) {
-            addMessageToChat(message, true);
-            messageInput.value = '';
-
-            fetch(`/tools/chat/${currentChatId}/send/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams({
-                    'message': message,
-                    'ai_service': currentProvider
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                    addMessageToChat(
-                        data.message, 
-                        false, 
-                        currentProvider, 
-                        data.content_type, 
-                        data.language, 
-                        data.image_url
-                    );
-                } else if (data.error) {
-                    addMessageToChat(`Error: ${data.error}`, false, 'System');
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatPanel = document.querySelector('.nk-chat-panel');
+        const messageInput = document.getElementById('default-textarea');
+        const sendButton = document.querySelector('.nk-chat-editor .btn-primary');
+        let currentProvider = 'claude';  // Default provider
+        let currentChatId = '{{ current_chat.uuid }}';
+        
+        const providerDropdown = document.querySelector('.nk-chat-aside-user .dropdown');
+        const currentProviderSpan = document.getElementById('current-provider');
+        
+        if (providerDropdown) {
+            providerDropdown.addEventListener('click', function(e) {
+                if (e.target.classList.contains('dropdown-item')) {
+                    e.preventDefault();
+                    currentProvider = e.target.dataset.provider;
+                    currentProviderSpan.textContent = e.target.textContent.trim();
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                addMessageToChat('An error occurred while sending the message.', false, 'System');
             });
         }
-    }
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+    
+        function scrollToBottom() {
+            chatPanel.scrollTop = chatPanel.scrollHeight;
+        }
+    
+        function addMessageToChat(content, isUser, provider = '', contentType = 'text', language = '', imageUrl = '') {
+            const chatDiv = document.createElement('div');
+            chatDiv.className = `chat ${isUser ? 'is-you' : 'is-me'}`;
+    
+            let messageContent;
+            if (contentType === 'code') {
+                messageContent = `<pre><code class="language-${language} chat-code">${content}</code></pre>`;
+            } else if (contentType === 'image') {
+                messageContent = `<img src="${imageUrl}" alt="${content}" style="max-width: 100%; height: auto;">`;
+            } else {
+                messageContent = `<div class="chat-msg">${content}</div>`;
+            }
+    
+            chatDiv.innerHTML = `
+                <div class="chat-content">
+                    <div class="chat-bubbles">
+                        <div class="chat-bubble">
+                            ${messageContent}
+                        </div>
+                    </div>
+                    <ul class="chat-meta">
+                        <li>${isUser ? 'You' : provider || 'AI'}</li>
+                        <li>${new Date().toLocaleString()}</li>
+                    </ul>
+                </div>
+            `;
+            chatPanel.appendChild(chatDiv);
+            scrollToBottom();
+    
+            if (contentType === 'code' && window.Prism) {
+                Prism.highlightElement(chatDiv.querySelector('code'));
             }
         }
-        return cookieValue;
-    }
-
-    // Event Listeners
-    sendButton.addEventListener('click', sendMessage);
-
-    messageInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
+    
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                addMessageToChat(message, true);
+                messageInput.value = '';
+    
+                fetch(`/tools/chat/${currentChatId}/send/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new URLSearchParams({
+                        'message': message,
+                        'ai_service': currentProvider
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        addMessageToChat(
+                            data.message, 
+                            false, 
+                            currentProvider, 
+                            data.content_type, 
+                            data.language, 
+                            data.image_url
+                        );
+                    } else if (data.error) {
+                        addMessageToChat(`Error: ${data.error}`, false, 'System');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    addMessageToChat('An error occurred while sending the message.', false, 'System');
+                });
+            }
         }
-    });
-
-    // Initial setup
-    scrollToBottom();
-
-    // Highlight any code blocks on initial load
-    document.querySelectorAll('pre code').forEach((block) => {
-        if (window.Prism) {
-            Prism.highlightElement(block);
+    
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
+    
+        // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+    
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    
+        // Initial setup
+        scrollToBottom();
+    
+        // Highlight any code blocks on initial load
+        document.querySelectorAll('pre code').forEach((block) => {
+            if (window.Prism) {
+                Prism.highlightElement(block);
+            }
+        });
     });
-});
 </script>
 {% endblock %}
 

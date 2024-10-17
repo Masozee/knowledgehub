@@ -120,38 +120,41 @@ def send_message(request, conversation_uuid):
     user_message = request.POST.get('message')
     ai_service = request.POST.get('ai_service', 'claude')
 
+    logger.info(f"Attempting to send message using {ai_service} service")
+
     if not user_message:
         return JsonResponse({'error': 'Message is required'}, status=400)
 
-    # Save user message
-    text_content = TextContent.objects.create(text=user_message)
-    Message.objects.create(
-        conversation=conversation,
-        content_type=ContentType.objects.get_for_model(TextContent),
-        object_id=text_content.id,
-        is_user=True
-    )
-
-    # Generate title if it's the first message
-    if conversation.messages.count() == 1:
-        new_title = generate_title(user_message, ai_service)
-        conversation.update_title(new_title)
-
-    # Get conversation history
-    messages = conversation.messages.order_by('timestamp')
-    history = []
-    for msg in messages:
-        content = msg.content_object
-        if isinstance(content, TextContent):
-            history.append({"role": "human" if msg.is_user else "assistant", "content": content.text})
-        elif isinstance(content, CodeContent):
-            history.append({"role": "human" if msg.is_user else "assistant",
-                            "content": f"```{content.language}\n{content.code}\n```"})
-        elif isinstance(content, ImageContent):
-            history.append({"role": "human" if msg.is_user else "assistant", "content": f"[Image: {content.caption}]"})
-
-    # Call appropriate AI service
     try:
+        # Save user message
+        text_content = TextContent.objects.create(text=user_message)
+        Message.objects.create(
+            conversation=conversation,
+            content_type=ContentType.objects.get_for_model(TextContent),
+            object_id=text_content.id,
+            is_user=True
+        )
+
+        # Generate title if it's the first message
+        if conversation.messages.count() == 1:
+            new_title = generate_title(user_message, ai_service)
+            conversation.update_title(new_title)
+
+        # Get conversation history
+        messages = conversation.messages.order_by('timestamp')
+        history = []
+        for msg in messages:
+            content = msg.content_object
+            if isinstance(content, TextContent):
+                history.append({"role": "human" if msg.is_user else "assistant", "content": content.text})
+            elif isinstance(content, CodeContent):
+                history.append({"role": "human" if msg.is_user else "assistant",
+                                "content": f"```{content.language}\n{content.code}\n```"})
+            elif isinstance(content, ImageContent):
+                history.append(
+                    {"role": "human" if msg.is_user else "assistant", "content": f"[Image: {content.caption}]"})
+
+        # Call appropriate AI service
         ai_response = None
         if ai_service == 'claude':
             ai_response = call_claude_api(history, user_message)
@@ -160,9 +163,11 @@ def send_message(request, conversation_uuid):
         elif ai_service == 'perplexity':
             ai_response = call_perplexity_api(history, user_message)
         else:
+            logger.error(f"Invalid AI service: {ai_service}")
             return JsonResponse({'error': 'Invalid AI service'}, status=400)
 
         if ai_response:
+            logger.info(f"Received response from {ai_service}")
             content_type, content_object = process_ai_response(ai_response)
 
             Message.objects.create(
@@ -189,7 +194,9 @@ def send_message(request, conversation_uuid):
 
             return JsonResponse(response_data)
         else:
+            logger.error(f"Failed to get response from {ai_service}")
             return JsonResponse({'error': f'Failed to get response from {ai_service}'}, status=500)
+
     except Exception as e:
         logger.exception(f"Error in send_message view: {str(e)}")
         return JsonResponse({'error': 'An unexpected error occurred'}, status=500)

@@ -52,7 +52,7 @@ def call_openai_api(history, user_message):
         client = OpenAI(api_key=openai_settings['api_key'])
 
         # Check if the user is requesting an image
-        if "generate image" in user_message.lower():
+        if any(phrase in user_message.lower() for phrase in ["generate image", "create image", "make an image"]):
             response = client.images.generate(
                 model="dall-e-3",
                 prompt=user_message,
@@ -68,7 +68,7 @@ def call_openai_api(history, user_message):
             }
         else:
             # Existing text completion logic
-            messages = [{"role": "system", "content": "You are a helpful assistant."}]
+            messages = [{"role": "system", "content": "You are a helpful assistant. If a user asks you to generate or create an image, inform them that you can do so and ask for specific details about the image they want."}]
             for msg in history:
                 messages.append({"role": "user" if msg["role"] == "human" else "assistant", "content": msg["content"]})
             messages.append({"role": "user", "content": user_message})
@@ -85,7 +85,10 @@ def call_openai_api(history, user_message):
             }
     except Exception as e:
         logger.exception(f"Error calling OpenAI API: {str(e)}")
-        return None
+        return {
+            'type': 'text',
+            'content': f"An error occurred while processing your request: {str(e)}"
+        }
 
 
 def call_perplexity_api(history, user_message):
@@ -96,30 +99,47 @@ def call_perplexity_api(history, user_message):
             base_url="https://api.perplexity.ai"
         )
 
-        messages = [{"role": "system", "content": "You are a helpful assistant."}]
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are an artificial intelligence assistant. Engage in a helpful, "
+                    "detailed, and polite conversation with the user."
+                ),
+            }
+        ]
 
-        if history:
-            if history[0]['role'] != 'human':
-                messages.append({"role": "user", "content": "Hello"})
+        # Ensure strictly alternating messages
+        last_role = "assistant"  # Start with this so the first non-system message is always "user"
+        for msg in history:
+            current_role = "user" if msg['role'] == 'human' else "assistant"
+            if current_role != last_role:
+                messages.append({"role": current_role, "content": msg['content']})
+                last_role = current_role
 
-            for msg in history:
-                role = "user" if msg['role'] == 'human' else "assistant"
-                messages.append({"role": role, "content": msg['content']})
-
-        if len(messages) % 2 == 0:
-            messages.append({"role": "assistant", "content": "I understand. How can I assist you further?"})
+        # Always end with the new user message
+        if last_role == "user":
+            # If the last message was from the user, add a dummy assistant message
+            messages.append({"role": "assistant", "content": "I understand. Please go on."})
 
         messages.append({"role": "user", "content": user_message})
 
+        print("Debug - Messages sent to API:", messages)  # Debugging line
+
         response = client.chat.completions.create(
-            model=perplexity_settings['model'],
+            model=perplexity_settings.get('model', "llama-3-sonar-large-32k-online"),
             messages=messages,
             max_tokens=perplexity_settings.get('max_tokens', 1000),
         )
+
         return analyze_response(response.choices[0].message.content.strip())
     except Exception as e:
-        logger.exception(f"Error calling Perplexity API: {str(e)}")
-        return None
+        error_message = f"Error calling Perplexity API: {str(e)}"
+        logger.exception(error_message)
+        return {
+            'type': 'text',
+            'content': f"An error occurred while accessing the Perplexity API: {error_message}"
+        }
 
 
 def analyze_response(response):
