@@ -75,40 +75,39 @@
                                         </div>
                                     </li><!-- .dropdown -->
                                     <li class="dropdown user-dropdown">
-                                        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
+                                        <a href="#" class="dropdown-toggle me-lg-n1" data-bs-toggle="dropdown">
                                             <div class="user-toggle">
                                                 <div class="user-avatar sm">
                                                     <em class="icon ni ni-user-alt"></em>
                                                 </div>
-                                                <div class="user-name dropdown-indicator d-none d-sm-block">Abu Bin Ishityak</div>
                                             </div>
                                         </a>
                                         <div class="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1">
                                             <div class="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
                                                 <div class="user-card">
                                                     <div class="user-avatar">
-                                                        <span>AB</span>
+                                                        <span>{{ request.user.username|first|upper }}</span>
                                                     </div>
                                                     <div class="user-info">
-                                                        <span class="lead-text">Abu Bin Ishtiyak</span>
-                                                        <span class="sub-text">info@softnio.com</span>
+                                                        <span class="lead-text">{{ request.user.username }}</span>
+                                                        <span class="sub-text">{{ request.user.email }}</span>
                                                     </div>
                                                     <div class="user-action">
-                                                        <a class="btn btn-icon me-n2" href="html/subscription/profile-setting.html"><em class="icon ni ni-setting"></em></a>
+                                                        <a class="btn btn-icon me-n2" href="html/user-profile-setting.html"><em class="icon ni ni-setting"></em></a>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="dropdown-inner">
                                                 <ul class="link-list">
-                                                    <li><a href="html/subscription/profile.html"><em class="icon ni ni-user-alt"></em><span>View Profile</span></a></li>
-                                                    <li><a href="html/subscription/profile-setting.html"><em class="icon ni ni-setting-alt"></em><span>Account Setting</span></a></li>
-                                                    <li><a href="html/subscription/profile-activity.html"><em class="icon ni ni-activity-alt"></em><span>Login Activity</span></a></li>
+                                                    <li><a href="html/user-profile-regular.html"><em class="icon ni ni-user-alt"></em><span>View Profile</span></a></li>
+                                                    <li><a href="html/user-profile-setting.html"><em class="icon ni ni-setting-alt"></em><span>Account Setting</span></a></li>
+                                                    <li><a href="html/user-profile-activity.html"><em class="icon ni ni-activity-alt"></em><span>Login Activity</span></a></li>
                                                     <li><a class="dark-switch" href="#"><em class="icon ni ni-moon"></em><span>Dark Mode</span></a></li>
                                                 </ul>
                                             </div>
                                             <div class="dropdown-inner">
                                                 <ul class="link-list">
-                                                    <li><a href="#"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
+                                                    <li><a href="{% url 'logout' %}"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -207,5 +206,9 @@
     <!-- JavaScript -->
     <script src="{% static 'dashboard/assets/js/bundle.js' %}"></script>
     <script src="{% static 'dashboard/assets/js/scripts.js' %}"></script>
+    
     {% block js %}
     {% endblock %}
+</body>
+
+</html>

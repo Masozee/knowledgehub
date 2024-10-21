@@ -11,7 +11,9 @@ from django_ckeditor_5.fields import CKEditor5Field
 from django.urls import reverse
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 class DatabaseBackup(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -189,4 +191,19 @@ class ImageContent(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     image = models.ImageField(upload_to='ai_images/')
     caption = models.CharField(max_length=255, blank=True)
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    message = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification for {self.user}: {self.message}"
 

@@ -84,13 +84,13 @@
                                             <ul class="language-list">
                                                 <li>
                                                     <a href="#" class="language-item">
-                                                        <img src="{% static 'dashboard/images/flags/english.png' %}" alt="" class="language-flag">
+                                                        
                                                         <span class="language-name">English</span>
                                                     </a>
                                                 </li>
                                                 <li>
                                                     <a href="#" class="language-item">
-                                                        <img src="{% static 'dashboard/images/flags/spanish.png' %}" alt="" class="language-flag">
+                                                        
                                                         <span class="language-name">Bahasa Indonesia</span>
                                                     </a>
                                                 </li>
@@ -182,11 +182,11 @@
                                             <div class="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
                                                 <div class="user-card">
                                                     <div class="user-avatar">
-                                                        <span>AB</span>
+                                                        <span>{{ request.user.username|first|upper }}</span>
                                                     </div>
                                                     <div class="user-info">
-                                                        <span class="lead-text">Abu Bin Ishtiyak</span>
-                                                        <span class="sub-text">info@softnio.com</span>
+                                                        <span class="lead-text">{{ request.user.username }}</span>
+                                                        <span class="sub-text">{{ request.user.email }}</span>
                                                     </div>
                                                     <div class="user-action">
                                                         <a class="btn btn-icon me-n2" href="html/user-profile-setting.html"><em class="icon ni ni-setting"></em></a>
@@ -203,14 +203,11 @@
                                             </div>
                                             <div class="dropdown-inner">
                                                 <ul class="link-list">
-                                                    <li><a href="#"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
+                                                    <li><a href="{% url 'logout' %}"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
                                                 </ul>
                                             </div>
                                         </div>
                                     </li><!-- .dropdown -->
-                                    <li class="d-lg-none">
-                                        <a href="#" class="toggle nk-quick-nav-icon me-n1" data-target="sideNav"><em class="icon ni ni-menu"></em></a>
-                                    </li>
                                 </ul><!-- .nk-quick-nav -->
                             </div><!-- .nk-header-tools -->
                         </div><!-- .nk-header-wrap -->
@@ -648,6 +645,8 @@
     <script src="{% static 'dashboard/assets/js/scripts.js' %}"></script>
     <script src="{% static 'dashboard/assets/js/charts/gd-analytics.js' %}"></script>
     <script src="{% static 'dashboard/assets/js/libs/jqvmap.js' %}"></script>
+    {% block js %}
+    {% endblock %}
 </body>
 
 </html>

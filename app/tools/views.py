@@ -201,14 +201,20 @@ def send_message(request, conversation_uuid):
         return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
 
 
-@login_required
+@require_POST
 def delete_conversation(request, conversation_uuid):
-    conversation = get_object_or_404(Conversation, uuid=conversation_uuid, user=request.user)
-    conversation.delete_conversation()
-    return redirect('tools:chatlist')
+    try:
+        conversation = Conversation.objects.get(uuid=conversation_uuid, user=request.user)
+        conversation.delete_conversation()
+        return JsonResponse({'success': True})
+    except Conversation.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Conversation not found'}, status=404)
 
-@login_required
+@require_POST
 def clear_conversation(request, conversation_uuid):
-    conversation = get_object_or_404(Conversation, uuid=conversation_uuid, user=request.user)
-    conversation.clear_chat()
-    return redirect('tools:chat_detail', conversation_uuid=conversation.uuid)
+    try:
+        conversation = Conversation.objects.get(uuid=conversation_uuid, user=request.user)
+        conversation.clear_chat()
+        return JsonResponse({'success': True})
+    except Conversation.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Conversation not found'}, status=404)
