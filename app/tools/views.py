@@ -56,7 +56,7 @@ def test_logging(request):
 
 @login_required
 def chat_list(request):
-    conversations = Conversation.objects.filter(user=request.user).order_by('-updated_at')
+    conversations = Conversation.objects.filter(user=request.user, is_deleted=False).order_by('-updated_at')
 
     conversation_data = [
         {
@@ -65,7 +65,6 @@ def chat_list(request):
             'created_at': conv.created_at,
             'updated_at': conv.updated_at,
             'is_cleared': conv.is_cleared,
-            'is_deleted': conv.is_deleted,
             'full_path': conv.full_path,
         }
         for conv in conversations
@@ -78,9 +77,9 @@ def chat_list(request):
 
 @login_required
 def chat_detail(request, conversation_uuid):
-    conversation = get_object_or_404(Conversation, uuid=conversation_uuid, user=request.user)
+    conversation = get_object_or_404(Conversation, uuid=conversation_uuid, user=request.user, is_deleted=False)
     messages = conversation.messages.order_by('timestamp')
-    all_chats = Conversation.objects.filter(user=request.user).order_by('-updated_at')
+    all_chats = Conversation.objects.filter(user=request.user, is_deleted=False).order_by('-updated_at')
     ai_services = ['claude', 'openai', 'perplexity']  # Add or remove services as needed
 
     serialized_messages = [serialize_message(msg) for msg in messages]
@@ -200,6 +199,7 @@ def send_message(request, conversation_uuid):
     except Exception as e:
         logger.exception(f"Error in send_message view: {str(e)}")
         return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
+
 
 @login_required
 def delete_conversation(request, conversation_uuid):

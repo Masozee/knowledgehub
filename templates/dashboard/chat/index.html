@@ -28,29 +28,30 @@
                     </div><!-- .nk-block-head -->
                     <div class="nk-block">
                         <ul class="sp-pdl-list">
-                            {% for a in conversations %}
-                            <li class="sp-pdl-item">
-                                <div class="sp-pdl-desc">
-                                    
-                                    <div class="sp-pdl-info">
-                                        <h6 class="sp-pdl-title"><span class="sp-pdl-name">{{ a.title }}</span></h6>
-                                        <div class="sp-pdl-meta">
-                                            <span class="version">
-                                                <span class="text-soft">ID: </span> <span>{{ a.uuid }}</span>
-                                            </span>
-                                            <span class="release">
-                                                <span class="text-soft">Created Date: </span> <span>{{ a.created_at | date:"Y-m-d H:i"}}</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="sp-pdl-btn">
-                                    <a href="{{ a.full_path }}" class="btn btn-primary">Continue Chat</a>
-                                </div>
-                            </li><!-- .sp-pdl-item -->
-                            {% endfor %}
-                            
-                        </ul><!-- .sp-pdl-list -->
+    {% for a in conversations %}
+    <li class="sp-pdl-item">
+        <div class="sp-pdl-desc">
+            <div class="sp-pdl-info">
+                <h6 class="sp-pdl-title"><span class="sp-pdl-name">{{ a.title }}</span></h6>
+                <div class="sp-pdl-meta">
+                    <span class="version">
+                        <span class="text-soft">ID: </span> <span>{{ a.uuid }}</span>
+                    </span>
+                    <span class="release">
+                        <span class="text-soft">Created Date: </span> <span>{{ a.created_at | date:"Y-m-d H:i"}}</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="sp-pdl-btn">
+            <a href="{{ a.full_path }}" class="btn btn-primary">Continue Chat</a>
+            <button class="btn btn-danger delete-btn" data-uuid="{{ a.uuid }}">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+        </div>
+    </li><!-- .sp-pdl-item -->
+    {% endfor %}
+</ul><!-- .sp-pdl-list -->
                     </div><!-- .nk-block -->
                     <div class="nk-block nk-block-lg">
                         <div class="card card-bordered">

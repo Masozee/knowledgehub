@@ -116,19 +116,35 @@
                                             </div><!-- .nk-chat-head -->
                                             <div class="nk-chat-panel" data-simplebar>
                                                 {% for message in messages %}
-                                                    <div class="chat {% if message.is_user %}is-you{% else %}is-me{% endif %}">
+                                                    <div class="chat {% if message.is_user %}is-me{% else %} {% endif %}">
                                                         <div class="chat-content">
-                                                            <div class="chat-bubbles">
-                                                                <div class="chat-bubble">
-                                                                    {% if message.content_type.model == 'textcontent' %}
-                                                                        <div class="chat-msg">{{ message.content_object.text|safe }}</div>
-                                                                    {% elif message.content_type.model == 'codecontent' %}
-                                                                        <pre><code class="language-{{ message.content_object.language }}">{{ message.content_object.code }}</code></pre>
-                                                                    {% elif message.content_type.model == 'imagecontent' %}
-                                                                        <img src="{{ message.content_object.image.url }}" alt="{{ message.content_object.caption }}" style="max-width: 100%; height: auto;">
-                                                                    {% endif %}
+                                                            {% if message.is_user %}
+                                                                <div class="chat-bubbles">
+                                                                    <div class="chat-bubble">
+                                                                        {% if message.content_type.model == 'textcontent' %}
+                                                                            <div class="chat-msg">{{ message.content_object.text|linebreaks|safe }}</div>
+                                                                        {% elif message.content_type.model == 'codecontent' %}
+                                                                            <div class="code-block">
+                                                                                <button class="copy-btn">Copy</button>
+                                                                                <pre><code class="language-{{ message.content_object.language }} chat-code">{{ message.content_object.code }}</code></pre>
+                                                                            </div>
+                                                                        {% elif message.content_type.model == 'imagecontent' %}
+                                                                            <img src="{{ message.content_object.image.url }}" alt="{{ message.content_object.caption }}" style="max-width: 100%; height: auto;">
+                                                                        {% endif %}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            {% else %}
+                                                                {% if message.content_type.model == 'textcontent' %}
+                                                                    <div class="chat-msg">{{ message.content_object.text|linebreaks|safe }}</div>
+                                                                {% elif message.content_type.model == 'codecontent' %}
+                                                                    <div class="code-block full-width">
+                                                                        <button class="copy-btn">Copy</button>
+                                                                        <pre><code class="language-{{ message.content_object.language }} chat-code">{{ message.content_object.code }}</code></pre>
+                                                                    </div>
+                                                                {% elif message.content_type.model == 'imagecontent' %}
+                                                                    <img src="{{ message.content_object.image.url }}" alt="{{ message.content_object.caption }}" style="max-width: 100%; height: auto;">
+                                                                {% endif %}
+                                                            {% endif %}
                                                             <ul class="chat-meta">
                                                                 <li>{% if message.is_user %}You{% else %}{{ message.ai_service|default:"AI"|title }}{% endif %}</li>
                                                                 <li>{{ message.timestamp|date:"d M, Y H:i" }}</li>
@@ -143,9 +159,8 @@
                                                     <div class="chat-upload-option" data-content="chat-upload">
                                                         <ul class="">
                                                             <li><a href="#"><em class="icon ni ni-img-fill"></em></a></li>
-                                                            <li><a href="#"><em class="icon ni ni-camera-fill"></em></a></li>
-                                                            <li><a href="#"><em class="icon ni ni-mic"></em></a></li>
-                                                            <li><a href="#"><em class="icon ni ni-grid-sq"></em></a></li>
+                                                            <li><a href="#"><em class="icon ni ni-file-doc"></em></a></li>
+
                                                         </ul>
                                                     </div>
                                                 </div>
@@ -217,50 +232,195 @@
                 <!-- content @e -->
                 {% endblock %}
 
-  {% block js %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
-    <script>
-    // Include the serialized messages in the JavaScript
-    const serializedMessages = {{ serialized_messages|safe }};
-</script>
+{% block css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+    /* General chat styles */
+    .chat {
+        margin-bottom: 20px;
+    }
+    .chat-content {
+        max-width: 80%;
+    }
+    .chat-meta {
+        list-style-type: none;
+        padding: 0;
+        margin: 5px 0 0;
+        font-size: 0.8em;
+        color: #6c757d;
+    }
+    .chat-meta li {
+        display: inline;
+        margin-right: 10px;
+    }
+
+    /* User message styles */
+    .chat.is-you {
+        text-align: right;
+    }
+    .chat.is-you .chat-content {
+        display: inline-block;
+    }
+    .chat.is-you .chat-bubble {
+        background-color: #28a745;
+        color: white;
+        border-radius: 15px;
+        padding: 10px 15px;
+        display: inline-block;
+        max-width: 100%;
+    }
+
+    /* AI message styles */
+    .chat.is-me .chat-content {
+        display: block;
+        max-width: 100%;
+    }
+    .chat.is-me .chat-msg {
+        color: #eaeaea;
+    }
+
+    /* Code block styles */
+    .code-block {
+        position: relative;
+        background-color: #1e1e1e;
+        border-radius: 6px;
+        margin: 10px 0;
+        padding: 40px 15px 15px;
+        overflow: hidden;
+    }
+    .code-block.full-width {
+        width: 100%;
+    }
+    .copy-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: transparent;
+        border: 1px solid #6c757d;
+        color: #6c757d;
+        border-radius: 3px;
+        padding: 3px 8px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .copy-btn:hover {
+        background-color: #6c757d;
+        color: #fff;
+    }
+    .chat-code {
+        color: #d4d4d4;
+        font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    /* Ensure images don't overflow */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+{% endblock %}
+
+{% block js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const chatPanel = document.querySelector('.nk-chat-panel');
-        const messageInput = document.getElementById('default-textarea');
-        const sendButton = document.querySelector('.nk-chat-editor .btn-primary');
-        let currentProvider = 'claude';  // Default provider
-        let currentChatId = '{{ current_chat.uuid }}';
-        
-        const providerDropdown = document.querySelector('.nk-chat-aside-user .dropdown');
-        const currentProviderSpan = document.getElementById('current-provider');
-        
-        if (providerDropdown) {
-            providerDropdown.addEventListener('click', function(e) {
-                if (e.target.classList.contains('dropdown-item')) {
-                    e.preventDefault();
-                    currentProvider = e.target.dataset.provider;
-                    currentProviderSpan.textContent = e.target.textContent.trim();
-                }
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                console.log('Text copied to clipboard');
+            }).catch(err => {
+                console.error('Error copying text: ', err);
             });
         }
-    
-        function scrollToBottom() {
-            chatPanel.scrollTop = chatPanel.scrollHeight;
-        }
-    
-        function addMessageToChat(content, isUser, provider = '', contentType = 'text', language = '', imageUrl = '') {
-            const chatDiv = document.createElement('div');
-            chatDiv.className = `chat ${isUser ? 'is-you' : 'is-me'}`;
-    
-            let messageContent;
-            if (contentType === 'code') {
-                messageContent = `<pre><code class="language-${language} chat-code">${content}</code></pre>`;
-            } else if (contentType === 'image') {
-                messageContent = `<img src="${imageUrl}" alt="${content}" style="max-width: 100%; height: auto;">`;
-            } else {
-                messageContent = `<div class="chat-msg">${content}</div>`;
+
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const codeElement = this.nextElementSibling.querySelector('code');
+                copyToClipboard(codeElement.textContent);
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = 'Copy';
+                }, 2000);
+            });
+        });
+
+        // Highlight all code blocks
+        document.querySelectorAll('pre code').forEach((block) => {
+            Prism.highlightElement(block);
+        });
+    });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatPanel = document.querySelector('.nk-chat-panel');
+    const messageInput = document.getElementById('default-textarea');
+    const sendButton = document.querySelector('.nk-chat-editor .btn-primary');
+    let currentProvider = 'claude';  // Default provider
+    let currentChatId = '{{ current_chat.uuid }}';
+
+    const providerDropdown = document.querySelector('.nk-chat-aside-user .dropdown');
+    const currentProviderSpan = document.getElementById('current-provider');
+
+    if (providerDropdown) {
+        providerDropdown.addEventListener('click', function(e) {
+            if (e.target.classList.contains('dropdown-item')) {
+                e.preventDefault();
+                currentProvider = e.target.dataset.provider;
+                currentProviderSpan.textContent = e.target.textContent.trim();
             }
-    
+        });
+    }
+
+    function scrollToBottom() {
+        chatPanel.scrollTop = chatPanel.scrollHeight;
+    }
+
+    function formatMessage(content, contentType) {
+        if (contentType === 'code') {
+            if (!content.startsWith('```')) {
+                content = '```python\n' + content + '\n```';
+            }
+        } else {
+            content = content.replace(/\n/g, '<br>');
+        }
+        return content;
+    }
+
+    function addMessageToChat(content, isUser, provider = '', contentType = 'text', language = '', imageUrl = '') {
+        const chatDiv = document.createElement('div');
+        chatDiv.className = `chat ${isUser ? 'is-you' : 'is-me'}`;
+
+        let messageContent;
+        content = formatMessage(content, contentType);
+
+        if (contentType === 'code') {
+            messageContent = `
+                <div class="code-block">
+                    <button class="copy-btn">Copy</button>
+                    <pre><code class="language-${language} chat-code">${content}</code></pre>
+                </div>`;
+        } else if (contentType === 'image') {
+            messageContent = `<img src="${imageUrl}" alt="${content}" style="max-width: 100%; height: auto;">`;
+        } else {
+            messageContent = `<div class="chat-msg">${content}</div>`;
+        }
+
+        if (isUser) {
+            chatDiv.innerHTML = `
+                <div class="chat-content">
+                    ${messageContent}
+                    <ul class="chat-meta">
+                        <li>You</li>
+                        <li>${new Date().toLocaleString()}</li>
+                    </ul>
+                </div>
+            `;
+        } else {
             chatDiv.innerHTML = `
                 <div class="chat-content">
                     <div class="chat-bubbles">
@@ -269,120 +429,124 @@
                         </div>
                     </div>
                     <ul class="chat-meta">
-                        <li>${isUser ? 'You' : provider || 'AI'}</li>
+                        <li>${provider || 'AI'}</li>
                         <li>${new Date().toLocaleString()}</li>
                     </ul>
                 </div>
             `;
-            chatPanel.appendChild(chatDiv);
-            scrollToBottom();
-    
-            if (contentType === 'code' && window.Prism) {
-                Prism.highlightElement(chatDiv.querySelector('code'));
-            }
         }
-    
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            if (message) {
-                addMessageToChat(message, true);
-                messageInput.value = '';
-    
-                fetch(`/tools/chat/${currentChatId}/send/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: new URLSearchParams({
-                        'message': message,
-                        'ai_service': currentProvider
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message) {
-                        addMessageToChat(
-                            data.message, 
-                            false, 
-                            currentProvider, 
-                            data.content_type, 
-                            data.language, 
-                            data.image_url
-                        );
-                    } else if (data.error) {
-                        addMessageToChat(`Error: ${data.error}`, false, 'System');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    addMessageToChat('An error occurred while sending the message.', false, 'System');
-                });
-            }
+
+        chatPanel.appendChild(chatDiv);
+        scrollToBottom();
+
+        if (contentType === 'code' && window.Prism) {
+            Prism.highlightElement(chatDiv.querySelector('code'));
         }
-    
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+
+        // Add copy functionality
+        const copyBtn = chatDiv.querySelector('.copy-btn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', function() {
+                const codeElement = this.nextElementSibling.querySelector('code');
+                copyToClipboard(codeElement.textContent);
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+    }
+
+    function copyToClipboard(text) {
+        // Remove the leading '```python' and trailing '```' if present
+        text = text.replace(/^```python\n/, '').replace(/\n```$/, '');
+
+        navigator.clipboard.writeText(text).then(() => {
+            console.log('Text copied to clipboard');
+        }).catch(err => {
+            console.error('Error copying text: ', err);
+        });
+    }
+
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message) {
+            addMessageToChat(message, true);
+            messageInput.value = '';
+
+            fetch(`/tools/chat/${currentChatId}/send/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    'message': message,
+                    'ai_service': currentProvider
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.message) {
+                    addMessageToChat(
+                        data.message,
+                        false,
+                        currentProvider,
+                        data.content_type,
+                        data.language,
+                        data.image_url
+                    );
+                } else if (data.error) {
+                    addMessageToChat(`Error: ${data.error}`, false, 'System');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessageToChat('An error occurred while sending the message.', false, 'System');
+            });
+        }
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
             }
-            return cookieValue;
         }
-    
-        // Event Listeners
-        sendButton.addEventListener('click', sendMessage);
-    
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-    
-        // Initial setup
-        scrollToBottom();
-    
-        // Highlight any code blocks on initial load
-        document.querySelectorAll('pre code').forEach((block) => {
-            if (window.Prism) {
-                Prism.highlightElement(block);
-            }
-        });
+        return cookieValue;
+    }
+
+    // Event Listeners
+    sendButton.addEventListener('click', sendMessage);
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
     });
+
+    // Initial setup
+    scrollToBottom();
+
+    // Highlight any code blocks on initial load
+    document.querySelectorAll('pre code').forEach((block) => {
+        if (window.Prism) {
+            Prism.highlightElement(block);
+        }
+    });
+});
 </script>
-{% endblock %}
-
-{% block css %}
-<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css" rel="stylesheet" />
-<style>
-        /* Style for inline code */
-        code {
-            border-radius: 3px;
-            padding: 2px 4px;
-            font-family: "Courier New", Courier, monospace;
-            color: #c7254e;
-            font-size: 14px;
-        }
-
-        /* Style for block code */
-        .chat-code {
-            background-color: #28853e !important; /* Black background for code blocks */
-            color: #faf8f8; /* Light text color */
-            padding: 10px;
-            border-radius: 5px;
-            font-family: "Courier New", Courier, monospace;
-            font-size: 14px;
-            white-space: pre-wrap; /* Preserve line breaks */
-            overflow-x: auto; /* Allow horizontal scrolling if the code is too wide */
-        }
-
-    </style>    
 {% endblock %}
