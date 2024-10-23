@@ -1,19 +1,4 @@
-"""
-URL configuration for Knowledgehub project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+# urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -23,16 +8,24 @@ from .views import LogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('microsoft/', include('microsoft_auth.urls', namespace='microsoft')),
-    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('accounts/', include('allauth.urls')),  # This handles all auth URLs
+
+    # Your custom login view (if you want to keep it)
+    path('login/', auth_views.LoginView.as_view(
+        template_name='registration/login.html',
+        redirect_authenticated_user=True
+    ), name='login'),
+
     path('logout/', LogoutView.as_view(), name='logout'),
+
+    # Your other URLs...
     path('', include('app.web.url')),
     path('tools/', include('app.tools.url')),
     path('project/', include('app.project.url')),
     path('publications/', include('app.publications.url')),
     path('events/', include('app.events.url')),
     path('ckeditor5/', include('django_ckeditor_5.urls')),
-
+    path('people/', include('app.people.url', namespace='photos_backup')),
 ]
 
 if settings.DEBUG:

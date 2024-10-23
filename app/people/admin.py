@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.html import format_html
-from .models import CustomUser, Person, Relationship, Staff, Speaker, Writer
+from .models import *
 
 class RelationshipInline(admin.TabularInline):
     model = Relationship
@@ -101,3 +101,24 @@ class WriterAdmin(admin.ModelAdmin):
 # If you want to use it, you'll need to define a custom GroupAdmin
 from django.contrib.auth.models import Group
 admin.site.unregister(Group)
+
+
+class PhotoInline(admin.TabularInline):
+    model = Photo
+    readonly_fields = ('google_photo_id', 'filename', 'mime_type', 'downloaded_at', 'photo_file')
+    extra = 0
+    can_delete = False
+    max_num = 0
+
+@admin.register(PhotoBackup)
+class PhotoBackupAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'status', 'total_photos', 'created_at', 'photos_limit')
+    list_filter = ('status', 'created_at')
+    search_fields = ('user__email',)
+    readonly_fields = ('status', 'total_photos', 'error_message', 'created_at', 'updated_at')
+    inlines = [PhotoInline]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.status != 'pending':  # If backup has started, make photos_limit readonly
+            return self.readonly_fields + ('photos_limit',)
+        return self.readonly_fields

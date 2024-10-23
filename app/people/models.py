@@ -1,9 +1,12 @@
 # people/models.py
 
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils.text import slugify
-
+from django.utils import timezone
+from django.conf import settings
+# models.py
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import AbstractUser, Group, Permission, User
 
 
 class CustomUser(AbstractUser):
@@ -16,6 +19,11 @@ class CustomUser(AbstractUser):
         ('partner', 'Partner'),
     )
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
+
+    # Google OAuth fields
+    google_token = models.TextField(blank=True, null=True)
+    google_refresh_token = models.TextField(blank=True, null=True)
+    google_token_expiry = models.DateTimeField(blank=True, null=True)
 
     # Add related_name to resolve clashes
     groups = models.ManyToManyField(
@@ -111,3 +119,42 @@ class Writer(models.Model):
 
     def __str__(self):
         return f"{self.person} - Writer"
+
+class PhotoBackup(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    total_photos = models.IntegerField(default=0)
+    error_message = models.TextField(blank=True, null=True)
+    photos_limit = models.IntegerField(default=50, help_text=_("Number of photos to backup (0 for unlimited)"))
+
+    def __str__(self):
+        return f"Backup {self.id} - {self.user.email} - {self.status}"
+
+    class Meta:
+        ordering = ['-created_at']
+
+class Photo(models.Model):
+    backup = models.ForeignKey(PhotoBackup, on_delete=models.CASCADE, related_name='photos')
+    google_photo_id = models.CharField(max_length=500)  # Increased from 255
+    filename = models.CharField(max_length=500)  # Increased from 255
+    original_url = models.TextField()  # Changed from URLField to TextField
+    mime_type = models.CharField(max_length=100)
+    created_time = models.DateTimeField(null=True, blank=True)
+    downloaded_at = models.DateTimeField(auto_now_add=True)
+    photo_file = models.FileField(upload_to='photo_backups/%Y/%m/%d/')
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        unique_together = ['backup', 'google_photo_id']
+
+    def __str__(self):
+        return f"{self.filename} - {self.backup.user.email}"

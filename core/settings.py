@@ -1,26 +1,21 @@
 import os
-from decouple import config, Csv
+from decouple import config
 from pathlib import Path
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-
+# Core Settings
 DEBUG = config('DEBUG', default=False, cast=bool)
+ENV = config('ENV', default='production')
 SECRET_KEY = config('SECRET_KEY')
-
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-
+ROOT_URLCONF = 'core.urls'
+WSGI_APPLICATION = 'core.wsgi.application'
+SITE_ID = 1
 
 # Application definition
-
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -28,8 +23,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+]
 
-    #generated apps
+PROJECT_APPS = [
     'app.api',
     'app.assets',
     'app.events',
@@ -39,14 +35,20 @@ INSTALLED_APPS = [
     'app.config',
     'app.project',
     'app.finance',
+]
 
-    #third party apps
-    'microsoft_auth',
+THIRD_PARTY_APPS = [
     'django_extensions',
     'import_export',
     'django_ckeditor_5',
-
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.microsoft',
 ]
+
+INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -56,10 +58,16 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
-ROOT_URLCONF = 'core.urls'
+# Authentication Settings
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 
+# Template Settings
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -71,22 +79,12 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'microsoft_auth.context_processors.microsoft',
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
-
-LOGIN_REDIRECT_URL = 'web:index'  # Redirect to dashboard after login
-LOGOUT_REDIRECT_URL = 'web:index'  # Redirect to dashboard after logout
-
-# If you want to use custom templates, uncomment and modify these lines:
-LOGIN_URL = 'login'
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+# Database Settings
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -111,86 +109,106 @@ DATABASE_ROUTERS = [
     'core.routers.LogsRouter',
     'core.routers.AnalyticsRouter'
 ]
-        # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'Asia/Jakarta'
-
-USE_I18N = True
-
-USE_TZ = True
-
-
-# CUSTOM USER CONFIG
+# Authentication and User Settings
 AUTH_USER_MODEL = 'people.CustomUser'
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]  # Directory where static files are stored during development
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Media files (user uploads)
-MEDIA_URL = '/media/'  # URL to access media files
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-#Third Party Configuration
-SITE_ID = 1
-
-# Microsoft OAuth settings
-AUTHENTICATION_BACKENDS = [
-    'microsoft_auth.backends.MicrosoftAuthenticationBackend',
-    'django.contrib.auth.backends.ModelBackend'
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# Authentication URLs and Settings
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = 'web:index'
+LOGIN_URL = 'account_login'
+
+# AllAuth Settings
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+#ACCOUNT_RATE_LIMITS['login_failed']
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
+ACCOUNT_ADAPTER = 'app.people.adapters.CustomAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'app.people.adapters.CustomSocialAccountAdapter'
+
+# Social Authentication Settings
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_STORE_TOKENS = True
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': config('GOOGLE_CLIENT_ID'),
+            'secret': config('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': [
+            'profile',
+            'email',
+            'https://www.googleapis.com/auth/photoslibrary.readonly',  # Add this scope
+            'https://www.googleapis.com/auth/photoslibrary',  # Add this scope
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'offline',  # Changed to offline to get refresh token
+            'prompt': 'consent'  # Add this to ensure we get refresh token
+        }
+    },
+    'microsoft': {
+        'APP': {
+            'client_id': config('MICROSOFT_AUTH_CLIENT_ID'),
+            'secret': config('MICROSOFT_AUTH_CLIENT_SECRET'),
+        },
+        'SCOPE': ['openid', 'email', 'profile', 'offline_access'],
+        'AUTH_PARAMS': {
+            'prompt': 'select_account',
+        },
+        'METHOD': 'oauth2',
+        'VERIFIED_EMAIL': True,
+        'EXCHANGE_TOKEN': True,
+        'TENANT': 'organizations',
+    }
+}
+'''
+# Microsoft Auth Settings
 MICROSOFT_AUTH_CLIENT_ID = config('MICROSOFT_AUTH_CLIENT_ID')
 MICROSOFT_AUTH_CLIENT_SECRET = config('MICROSOFT_AUTH_CLIENT_SECRET')
-MICROSOFT_AUTH_LOGIN_TYPE = 'ma'  # Microsoft Account login
-
-# Use Office 365 Authentication
+MICROSOFT_AUTH_LOGIN_TYPE = 'Office365'
 MICROSOFT_AUTH_TENANT_ID = 'organizations'
-
 MICROSOFT_AUTH_BASE_URL = 'https://login.microsoftonline.com'
-
-# Update the redirect URI to use HTTPS
 MICROSOFT_AUTH_REDIRECT_URI = 'https://localhost:8000/microsoft/auth-callback/'
+'''
+# Localization
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'Asia/Jakarta'
+USE_I18N = True
+USE_TZ = True
 
-# For extra security, you can set this to True in development
+# Static and Media Files
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Security Settings
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-
-#LOGS Configurations
-#LOG_FILE = os.path.join(BASE_DIR, 'django_logs.log')
-
+# Logging Configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -208,7 +226,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        '': {  # Root logger
+        '': {
             'handlers': ['db_log'],
             'level': 'DEBUG',
             'propagate': True,
@@ -216,17 +234,11 @@ LOGGING = {
     },
 }
 
-# Ensure the app directory is in the Python path
-import sys
-sys.path.append(str(BASE_DIR))
-
-# Specify the login redirect URL
-LOGIN_REDIRECT_URL = '/dashboard/'
-
+# AI Services Configuration
 AI_SERVICES = {
     'openai': {
         'api_key': config('OPENAI_API_KEY'),
-        'model': 'gpt-3.5-turbo',  # or 'gpt-4' if you have access
+        'model': 'gpt-3.5-turbo',
         'max_tokens': 1000,
         'temperature': 0.7,
     },
@@ -242,41 +254,20 @@ AI_SERVICES = {
     },
 }
 
-# OpenAI specific settings (if needed separately)
-OPENAI_API_KEY = AI_SERVICES['openai']['api_key']
-
+# CKEditor Configuration
 customColorPalette = [
-        {
-            'color': 'hsl(4, 90%, 58%)',
-            'label': 'Red'
-        },
-        {
-            'color': 'hsl(340, 82%, 52%)',
-            'label': 'Pink'
-        },
-        {
-            'color': 'hsl(291, 64%, 42%)',
-            'label': 'Purple'
-        },
-        {
-            'color': 'hsl(262, 52%, 47%)',
-            'label': 'Deep Purple'
-        },
-        {
-            'color': 'hsl(231, 48%, 48%)',
-            'label': 'Indigo'
-        },
-        {
-            'color': 'hsl(207, 90%, 54%)',
-            'label': 'Blue'
-        },
-    ]
+    {'color': 'hsl(4, 90%, 58%)', 'label': 'Red'},
+    {'color': 'hsl(340, 82%, 52%)', 'label': 'Pink'},
+    {'color': 'hsl(291, 64%, 42%)', 'label': 'Purple'},
+    {'color': 'hsl(262, 52%, 47%)', 'label': 'Deep Purple'},
+    {'color': 'hsl(231, 48%, 48%)', 'label': 'Indigo'},
+    {'color': 'hsl(207, 90%, 54%)', 'label': 'Blue'},
+]
 
 CKEDITOR_5_CONFIGS = {
     'default': {
         'toolbar': ['heading', '|', 'bold', 'italic', 'link',
-                    'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', ],
-
+                   'bulletedList', 'numberedList', 'blockQuote', 'imageUpload'],
     },
     'extends': {
         'blockToolbar': [
@@ -287,25 +278,18 @@ CKEDITOR_5_CONFIGS = {
             'blockQuote',
         ],
         'toolbar': ['heading', '|', 'outdent', 'indent', '|', 'bold', 'italic', 'link', 'underline', 'strikethrough',
-        'code','subscript', 'superscript', 'highlight', '|', 'codeBlock', 'sourceEditing', 'insertImage',
-                    'bulletedList', 'numberedList', 'todoList', '|',  'blockQuote', 'imageUpload', '|',
-                    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 'mediaEmbed', 'removeFormat',
-                    'insertTable',],
+                   'code', 'subscript', 'superscript', 'highlight', '|', 'codeBlock', 'sourceEditing', 'insertImage',
+                   'bulletedList', 'numberedList', 'todoList', '|', 'blockQuote', 'imageUpload', '|',
+                   'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 'mediaEmbed', 'removeFormat',
+                   'insertTable'],
         'image': {
             'toolbar': ['imageTextAlternative', '|', 'imageStyle:alignLeft',
-                        'imageStyle:alignRight', 'imageStyle:alignCenter', 'imageStyle:side',  '|'],
-            'styles': [
-                'full',
-                'side',
-                'alignLeft',
-                'alignRight',
-                'alignCenter',
-            ]
-
+                       'imageStyle:alignRight', 'imageStyle:alignCenter', 'imageStyle:side', '|'],
+            'styles': ['full', 'side', 'alignLeft', 'alignRight', 'alignCenter'],
         },
         'table': {
-            'contentToolbar': [ 'tableColumn', 'tableRow', 'mergeTableCells',
-            'tableProperties', 'tableCellProperties' ],
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells',
+                             'tableProperties', 'tableCellProperties'],
             'tableProperties': {
                 'borderColors': customColorPalette,
                 'backgroundColors': customColorPalette
@@ -315,12 +299,12 @@ CKEDITOR_5_CONFIGS = {
                 'backgroundColors': customColorPalette
             }
         },
-        'heading' : {
+        'heading': {
             'options': [
-                { 'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph' },
-                { 'model': 'heading1', 'view': 'h1', 'title': 'Heading 1', 'class': 'ck-heading_heading1' },
-                { 'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2' },
-                { 'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3' }
+                {'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph'},
+                {'model': 'heading1', 'view': 'h1', 'title': 'Heading 1', 'class': 'ck-heading_heading1'},
+                {'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3'}
             ]
         }
     },
