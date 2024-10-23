@@ -42,3 +42,6 @@ logs3.sqlite3
 ehthumbs.db
 Thumbs.db
 
+# Migrations
+*/migrations/*
+!*/migrations/__init__.py
