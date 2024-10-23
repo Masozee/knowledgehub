@@ -1,10 +1,24 @@
 # views.py
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from app.people.models import *
 
-@login_required
+
+
+@login_required(login_url='/accounts/login/')
 def index(request):
-    return render(request, 'dashboard/index.html')
+    try:
+        user = CustomUser.objects.get(email=request.user.email)
+        context = {
+            'user': user,
+            'user_type': user.user_type,  # Since you have a user_type field
+            'is_verified': user.is_email_verified,
+        }
+        return render(request, 'dashboard/index.html', context)
+    except CustomUser.DoesNotExist:
+        messages.error(request, 'User not found.')
+        return redirect('login')
 
 @login_required
 def userHome(request):

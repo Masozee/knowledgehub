@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.html import format_html
 from .models import *
+from .forms import CustomUserCreationForm, CustomUserChangeForm
 
 class RelationshipInline(admin.TabularInline):
     model = Relationship
@@ -22,36 +23,28 @@ class WriterInline(admin.StackedInline):
     model = Writer
     can_delete = False
 
-class CustomUserChangeForm(UserChangeForm):
-    class Meta(UserChangeForm.Meta):
-        model = CustomUser
-        fields = '__all__'
-
-class CustomUserCreationForm(UserCreationForm):
-    class Meta(UserCreationForm.Meta):
-        model = CustomUser
-        fields = UserCreationForm.Meta.fields + ('user_type',)
-
-@admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    form = CustomUserChangeForm
     add_form = CustomUserCreationForm
-    list_display = ('username', 'email', 'user_type', 'is_staff', 'is_active')
-    list_filter = ('user_type', 'is_staff', 'is_active')
+    form = CustomUserChangeForm
+    model = CustomUser
+    list_display = ('email', 'user_type', 'is_staff', 'is_active',)
+    list_filter = ('email', 'user_type', 'is_staff', 'is_active',)
     fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),
-        ('Custom Fields', {'fields': ('user_type',)}),
+        (None, {'fields': ('email', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'user_type')}),
+        ('OAuth info', {'fields': ('oauth_provider', 'oauth_token', 'oauth_refresh_token', 'oauth_token_expiry')}),
+        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'password1', 'password2', 'user_type'),
-        }),
+            'fields': ('email', 'user_type', 'password1', 'password2', 'is_staff', 'is_active')}
+        ),
     )
-    search_fields = ('username', 'email', 'user_type')
+    search_fields = ('email',)
+    ordering = ('email',)
+
+admin.site.register(CustomUser, CustomUserAdmin)
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):

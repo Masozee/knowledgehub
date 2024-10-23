@@ -118,9 +118,14 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 # Authentication URLs and Settings
-LOGIN_REDIRECT_URL = '/dashboard/'
+LOGIN_REDIRECT_URL = 'web:index'
 LOGOUT_REDIRECT_URL = 'web:index'
 LOGIN_URL = 'account_login'
 
@@ -128,23 +133,21 @@ LOGIN_URL = 'account_login'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
-#ACCOUNT_RATE_LIMITS['login_failed']
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
-ACCOUNT_ADAPTER = 'app.people.adapters.CustomAccountAdapter'
-SOCIALACCOUNT_ADAPTER = 'app.people.adapters.CustomSocialAccountAdapter'
+
 
 # Social Authentication Settings
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
-SOCIALACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_LOGIN_ON_GET = True
-SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Since you want email verification
+SOCIALACCOUNT_EMAIL_REQUIRED = True            # Email is required
+SOCIALACCOUNT_AUTO_SIGNUP = True              # Automatic signup for better UX
+SOCIALACCOUNT_LOGIN_ON_GET = True             # Smoother OAuth flow
+SOCIALACCOUNT_QUERY_EMAIL = True              # Always get email from provider
 SOCIALACCOUNT_STORE_TOKENS = True
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -170,9 +173,14 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': config('MICROSOFT_AUTH_CLIENT_ID'),
             'secret': config('MICROSOFT_AUTH_CLIENT_SECRET'),
         },
-        'SCOPE': ['openid', 'email', 'profile', 'offline_access'],
+        'SCOPE': [
+            'User.Read',
+            'profile',
+            'email',
+            'openid'
+        ],
         'AUTH_PARAMS': {
-            'prompt': 'select_account',
+            'access_type': 'online',
         },
         'METHOD': 'oauth2',
         'VERIFIED_EMAIL': True,
@@ -180,15 +188,13 @@ SOCIALACCOUNT_PROVIDERS = {
         'TENANT': 'organizations',
     }
 }
-'''
-# Microsoft Auth Settings
-MICROSOFT_AUTH_CLIENT_ID = config('MICROSOFT_AUTH_CLIENT_ID')
-MICROSOFT_AUTH_CLIENT_SECRET = config('MICROSOFT_AUTH_CLIENT_SECRET')
-MICROSOFT_AUTH_LOGIN_TYPE = 'Office365'
-MICROSOFT_AUTH_TENANT_ID = 'organizations'
-MICROSOFT_AUTH_BASE_URL = 'https://login.microsoftonline.com'
-MICROSOFT_AUTH_REDIRECT_URI = 'https://localhost:8000/microsoft/auth-callback/'
-'''
+
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+SOCIALACCOUNT_FORMS = {
+    'signup': 'app.people.forms.SocialAccountSignupForm'
+}
+
 # Localization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Jakarta'

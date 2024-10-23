@@ -1,69 +1,61 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Grant, GrantExpense, BudgetAllocation, PosAllocation, PosExpense, JournalEntry
 from django.contrib.contenttypes.models import ContentType
-from django.utils import timezone
+from .models import (
+    Grant, Budget, PosAllocation, GrantExpense,
+    PosExpense, JournalEntry, BudgetAllocation
+)
 
 @receiver(post_save, sender=Grant)
-def create_grant_journal_entry(sender, instance, created, **kwargs):
+def create_default_pos_allocation(sender, instance, created, **kwargs):
+    """Create a default POS allocation when a new grant is created"""
     if created:
-        JournalEntry.objects.create(
-            date=instance.start_date,
-            description=f"Grant received: {instance.name}",
-            debit_account="Bank",
-            credit_account="Grant Revenue",
+        PosAllocation.objects.create(
+            name=f"Default allocation for {instance.name}",
             amount=instance.amount,
-            content_type=ContentType.objects.get_for_model(instance),
-            object_id=instance.id
+            currency=instance.currency,
+            grant=instance
+        )
+
+@receiver(post_save, sender=Budget)
+def create_default_budget_allocation(sender, instance, created, **kwargs):
+    """Create a default budget allocation when a new budget is created"""
+    if created:
+        BudgetAllocation.objects.create(
+            budget=instance,
+            category="General",
+            amount=instance.initial_amount
         )
 
 @receiver(post_save, sender=GrantExpense)
 def create_grant_expense_journal_entry(sender, instance, created, **kwargs):
+    """Create a journal entry when a grant expense is recorded"""
     if created:
         JournalEntry.objects.create(
             date=instance.date,
-            description=f"Grant expense: {instance.description} for {instance.grant.name}",
+            description=f"Grant expense: {instance.description}",
             debit_account="Grant Expenses",
-            credit_account="Bank",
+            credit_account="Cash/Bank",
             amount=instance.amount,
+            currency=instance.currency,
             content_type=ContentType.objects.get_for_model(instance),
             object_id=instance.id
         )
 
-@receiver(post_save, sender=BudgetAllocation)
-def create_budget_allocation_journal_entry(sender, instance, created, **kwargs):
-    if created:
-        JournalEntry.objects.create(
-            date=timezone.now(),
-            description=f"Budget allocation: {instance.category} for FY {instance.budget.fiscal_year}",
-            debit_account="Budget Allocations",
-            credit_account="Available Budget",
-            amount=instance.amount,
-            related_object=instance
-        )
-
-@receiver(post_save, sender=PosAllocation)
-def create_pos_allocation_journal_entry(sender, instance, created, **kwargs):
-    if created:
-        account_type = "Budget" if instance.budget else "Grant"
-        JournalEntry.objects.create(
-            date=timezone.now(),
-            description=f"POS Allocation: {instance.name} for {account_type} {instance.budget or instance.grant}",
-            debit_account=f"{account_type} POS Allocations",
-            credit_account=f"Available {account_type}",
-            amount=instance.amount,
-            related_object=instance
-        )
-
 @receiver(post_save, sender=PosExpense)
 def create_pos_expense_journal_entry(sender, instance, created, **kwargs):
+    """Create a journal entry when a POS expense is recorded"""
     if created:
-        account_type = "Budget" if instance.pos_allocation.budget else "Grant"
         JournalEntry.objects.create(
             date=instance.date,
-            description=f"POS Expense: {instance.description} for {instance.pos_allocation.name}",
-            debit_account=f"{account_type} POS Expenses",
-            credit_account="Bank",
+            description=f"POS expense: {instance.description}",
+            debit_account=instance.pos_allocation.name,
+            credit_account="Cash/Bank",
             amount=instance.amount,
-            related_object=instance
+            currency=instance.currency,
+            content_type=ContentType.objects.get_for_model(instance),
+            object_id=instance.id
         )
+
+# Connect signals in apps.py or __init__.py
+default_app_config = 'finance.apps.FinanceConfig'

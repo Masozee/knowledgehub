@@ -6,7 +6,25 @@ from django.utils import timezone
 from django.conf import settings
 # models.py
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.models import AbstractUser, Group, Permission, User
+from django.contrib.auth.models import AbstractUser, Group, Permission, User, BaseUserManager
+
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        if password:
+            user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('user_type', 'staff')  # Default type for superuser
+        return self.create_user(email, password, **extra_fields)
 
 
 class CustomUser(AbstractUser):
@@ -18,14 +36,24 @@ class CustomUser(AbstractUser):
         ('writer', 'Writer'),
         ('partner', 'Partner'),
     )
+
+    # Make email the main identifier
+    username = None  # Remove username field
+    email = models.EmailField(_('email address'), unique=True)
+
+    # Your existing fields
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
 
-    # Google OAuth fields
-    google_token = models.TextField(blank=True, null=True)
-    google_refresh_token = models.TextField(blank=True, null=True)
-    google_token_expiry = models.DateTimeField(blank=True, null=True)
+    # OAuth fields (consolidated)
+    oauth_provider = models.CharField(max_length=30, blank=True, null=True)  # 'google' or 'microsoft'
+    oauth_token = models.TextField(blank=True, null=True)
+    oauth_refresh_token = models.TextField(blank=True, null=True)
+    oauth_token_expiry = models.DateTimeField(blank=True, null=True)
 
-    # Add related_name to resolve clashes
+    # Email verification field
+    is_email_verified = models.BooleanField(default=False)
+
+    # Groups and Permissions (keep your existing related_names)
     groups = models.ManyToManyField(
         Group,
         verbose_name='groups',
@@ -43,11 +71,24 @@ class CustomUser(AbstractUser):
         related_query_name='custom_user',
     )
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['user_type']  # Required during createsuperuser
+
+    objects = CustomUserManager()
+
     def __str__(self):
-        return self.username
+        return self.email
 
     class Meta:
         app_label = 'people'
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+
+    def save(self, *args, **kwargs):
+        # Ensure user_type is set
+        if not self.user_type and not self.is_superuser:
+            self.user_type = 'visitor'  # Default type for regular users
+        super().save(*args, **kwargs)
 
 class Organization(models.Model):
     name = models.CharField(max_length=50)

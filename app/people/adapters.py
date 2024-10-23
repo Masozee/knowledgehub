@@ -1,27 +1,17 @@
-# app/people/adapters.py
-from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-
-class CustomAccountAdapter(DefaultAccountAdapter):
-    def is_open_for_signup(self, request):
-        return True
-
-    def get_email_confirmation_url(self, request, emailconfirmation):
-        return None  # Disable email confirmation URLs
-
-    def save_user(self, request, user, form, commit=True):
-        user = super().save_user(request, user, form, commit=False)
-        user.is_active = True  # Automatically activate users
-        if commit:
-            user.save()
-        return user
+from allauth.account.adapter import DefaultAccountAdapter
+from django.conf import settings
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
-    def is_open_for_signup(self, request, sociallogin):
+    def is_auto_signup_allowed(self, request, sociallogin):
         return True
 
-    def save_user(self, request, sociallogin, form=None):
-        user = super().save_user(request, sociallogin, form)
-        user.is_active = True  # Automatically activate social users
-        user.save()
+    def populate_user(self, request, sociallogin, data):
+        user = super().populate_user(request, sociallogin, data)
+        user.is_email_verified = True
         return user
+
+class CustomAccountAdapter(DefaultAccountAdapter):
+    def send_confirmation_mail(self, request, emailconfirmation, signup):
+        # Customize confirmation email if needed
+        super().send_confirmation_mail(request, emailconfirmation, signup)
