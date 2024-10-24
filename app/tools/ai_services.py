@@ -53,22 +53,59 @@ def call_openai_api(history, user_message):
 
         # Check if the user is requesting an image
         if any(phrase in user_message.lower() for phrase in ["generate image", "create image", "make an image"]):
-            response = client.images.generate(
-                model="dall-e-3",
-                prompt=user_message,
-                size="1024x1024",
-                quality="standard",
-                n=1,
-            )
-            image_url = response.data[0].url
-            return {
-                'type': 'image',
-                'content': image_url,
-                'caption': user_message
-            }
+            try:
+                print(f"Attempting to generate image with prompt: {user_message}")
+
+                # Verify API key has access to image generation
+                print(f"Using API key: {openai_settings['api_key'][:8]}...")  # Only print first 8 chars for security
+
+                response = client.images.generate(
+                    model="dall-e-3",
+                    prompt=user_message,
+                    size="1024x1024",
+                    quality="standard",
+                    n=1,
+                )
+
+                print(f"Image generation response: {response}")  # Log full response
+
+                if not response.data:
+                    raise ValueError("No image data received from API")
+
+                image_url = response.data[0].url
+                print(f"Generated image URL: {image_url}")
+
+                return {
+                    'type': 'image',
+                    'content': image_url,
+                    'caption': user_message
+                }
+            except Exception as img_error:
+                print(f"Image generation error: {str(img_error)}")
+                if "billing" in str(img_error).lower():
+                    return {
+                        'type': 'text',
+                        'content': "Unable to generate image: Your OpenAI account may need billing setup or doesn't have access to image generation."
+                    }
+                elif "permission" in str(img_error).lower():
+                    return {
+                        'type': 'text',
+                        'content': "Unable to generate image: Your API key may not have permission to generate images."
+                    }
+                elif "quota" in str(img_error).lower():
+                    return {
+                        'type': 'text',
+                        'content': "Unable to generate image: You may have reached your API quota limit."
+                    }
+                else:
+                    return {
+                        'type': 'text',
+                        'content': f"Unable to generate image: {str(img_error)}"
+                    }
         else:
             # Existing text completion logic
-            messages = [{"role": "system", "content": "You are a helpful assistant. If a user asks you to generate or create an image, inform them that you can do so and ask for specific details about the image they want."}]
+            messages = [{"role": "system",
+                         "content": "You are a helpful assistant. If a user asks you to generate or create an image, inform them that you can do so and ask for specific details about the image they want."}]
             for msg in history:
                 messages.append({"role": "user" if msg["role"] == "human" else "assistant", "content": msg["content"]})
             messages.append({"role": "user", "content": user_message})
@@ -89,7 +126,6 @@ def call_openai_api(history, user_message):
             'type': 'text',
             'content': f"An error occurred while processing your request: {str(e)}"
         }
-
 
 def call_perplexity_api(history, user_message):
     try:

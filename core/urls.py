@@ -12,7 +12,7 @@ urlpatterns = [
 
     # Your custom login view (if you want to keep it)
     path('login/', auth_views.LoginView.as_view(
-        template_name='registration/login.html',
+        template_name='socialaccount/login.html',
         redirect_authenticated_user=True
     ), name='login'),
 

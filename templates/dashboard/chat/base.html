@@ -82,35 +82,42 @@
                                                 </div>
                                             </div>
                                         </a>
-                                        <div class="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1">
-                                            <div class="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
-                                                <div class="user-card">
-                                                    <div class="user-avatar">
-                                                        <span>{{ request.user.username|first|upper }}</span>
-                                                    </div>
-                                                    <div class="user-info">
-                                                        <span class="lead-text">{{ request.user.username }}</span>
-                                                        <span class="sub-text">{{ request.user.email }}</span>
-                                                    </div>
-                                                    <div class="user-action">
-                                                        <a class="btn btn-icon me-n2" href="html/user-profile-setting.html"><em class="icon ni ni-setting"></em></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="dropdown-inner">
-                                                <ul class="link-list">
-                                                    <li><a href="html/user-profile-regular.html"><em class="icon ni ni-user-alt"></em><span>View Profile</span></a></li>
-                                                    <li><a href="html/user-profile-setting.html"><em class="icon ni ni-setting-alt"></em><span>Account Setting</span></a></li>
-                                                    <li><a href="html/user-profile-activity.html"><em class="icon ni ni-activity-alt"></em><span>Login Activity</span></a></li>
-                                                    <li><a class="dark-switch" href="#"><em class="icon ni ni-moon"></em><span>Dark Mode</span></a></li>
-                                                </ul>
-                                            </div>
-                                            <div class="dropdown-inner">
-                                                <ul class="link-list">
-                                                    <li><a href="{% url 'logout' %}"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
+                                       <div class="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1">
+    <div class="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
+        <div class="user-card">
+            <div class="user-avatar">
+                <span>{{ request.user.email|first|upper }}</span>
+            </div>
+            <div class="user-info">
+                <!-- Since we don't have username, use email or first_name if available -->
+                <span class="lead-text">
+                    {% if request.user.get_full_name %}
+                        {{ request.user.get_full_name }}
+                    {% else %}
+                        {{ request.user.email }}
+                    {% endif %}
+                </span>
+                <span class="sub-text">{{ request.user.email }}</span>
+            </div>
+            <div class="user-action">
+                <a class="btn btn-icon me-n2" href="html/user-profile-setting.html"><em class="icon ni ni-setting"></em></a>
+            </div>
+        </div>
+    </div>
+    <div class="dropdown-inner">
+        <ul class="link-list">
+            <li><a href="html/user-profile-regular.html"><em class="icon ni ni-user-alt"></em><span>View Profile</span></a></li>
+            <li><a href="html/user-profile-setting.html"><em class="icon ni ni-setting-alt"></em><span>Account Setting</span></a></li>
+            <li><a href="html/user-profile-activity.html"><em class="icon ni ni-activity-alt"></em><span>Login Activity</span></a></li>
+            <li><a class="dark-switch" href="#"><em class="icon ni ni-moon"></em><span>Dark Mode</span></a></li>
+        </ul>
+    </div>
+    <div class="dropdown-inner">
+        <ul class="link-list">
+            <li><a href="{% url 'logout' %}"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
+        </ul>
+    </div>
+</div>
                                     </li><!-- .dropdown -->
                                     <li class="dropdown notification-dropdown">
                                         <a href="#" class="dropdown-toggle nk-quick-nav-icon me-lg-n1" data-bs-toggle="dropdown">

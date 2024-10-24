@@ -147,7 +147,7 @@ class Conversation(models.Model):
 
     @property
     def full_path(self):
-        return reverse('tools:chat_detail', kwargs={'conversation_uuid': str(self.uuid)})
+        return reverse('tools:chat_detail', kwargs={'conversation_uuid': self.uuid})
 
     def update_title(self, new_title):
         self.title = new_title
