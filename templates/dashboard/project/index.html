@@ -1,605 +1,408 @@
 {% extends 'dashboard/base.html' %}
-{%  load static %}
+{% load static %}
 
 {% block content %}
-
-
-                                <div class="nk-content-wrap">
-                                    <div class="nk-block-head nk-block-head-sm">
-                                        <div class="nk-block-between">
-                                            <div class="nk-block-head-content">
-                                                <h3 class="nk-block-title page-title">Projects</h3>
-                                                <div class="nk-block-des text-soft">
-                                                    <p>You have total 95 projects.</p>
-                                                </div>
-                                            </div><!-- .nk-block-head-content -->
-                                            <div class="nk-block-head-content">
-                                                <div class="toggle-wrap nk-block-tools-toggle">
-                                                    <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu"><em class="icon ni ni-menu-alt-r"></em></a>
-                                                    <div class="toggle-expand-content" data-content="pageMenu">
-                                                        <ul class="nk-block-tools g-3">
-                                                            <li>
-                                                                <div class="drodown">
-                                                                    <a href="#" class="dropdown-toggle btn btn-white btn-dim btn-outline-light" data-bs-toggle="dropdown"><em class="d-none d-sm-inline icon ni ni-filter-alt"></em><span>Filtered By</span><em class="dd-indc icon ni ni-chevron-right"></em></a>
-                                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                                        <ul class="link-list-opt no-bdr">
-                                                                            <li><a href="#"><span>Open</span></a></li>
-                                                                            <li><a href="#"><span>Closed</span></a></li>
-                                                                            <li><a href="#"><span>Onhold</span></a></li>
-                                                                        </ul>
-                                                                    </div>
-                                                                </div>
-                                                            </li>
-                                                            <li class="nk-block-tools-opt d-none d-sm-block">
-                                                                <a href="#" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>Add Project</span></a>
-                                                            </li>
-                                                            <li class="nk-block-tools-opt d-block d-sm-none">
-                                                                <a href="#" class="btn btn-icon btn-primary"><em class="icon ni ni-plus"></em></a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div><!-- .toggle-wrap -->
-                                            </div><!-- .nk-block-head-content -->
-                                        </div><!-- .nk-block-between -->
-                                    </div><!-- .nk-block-head -->
-                                    <div class="nk-block">
-                                        <div class="card card-bordered card-stretch">
-                                            <div class="card-inner-group">
-                                                <div class="card-inner p-0">
-                                                    <table class="nk-tb-list nk-tb-ulist">
-                                                        <thead>
-                                                            <tr class="nk-tb-item nk-tb-head">
-                                                                <th class="nk-tb-col nk-tb-col-check">
-                                                                    <div class="custom-control custom-control-sm custom-checkbox notext">
-                                                                        <input type="checkbox" class="custom-control-input" id="pid-all">
-                                                                        <label class="custom-control-label" for="pid-all"></label>
-                                                                    </div>
-                                                                </th>
-                                                                <th class="nk-tb-col"><span class="sub-text">Project Name</span></th>
-                                                                <th class="nk-tb-col tb-col-xl"><span class="sub-text">Project Lead</span></th>
-                                                                <th class="nk-tb-col tb-col-xl"><span class="sub-text">Team</span></th>
-                                                                <th class="nk-tb-col tb-col-xxl"><span class="sub-text">Status</span></th>
-                                                                <th class="nk-tb-col tb-col-md"><span class="sub-text">Progress</span></th>
-                                                                <th class="nk-tb-col tb-col-mb"><span class="sub-text">Deadline</span></th>
-                                                                <th class="nk-tb-col nk-tb-col-tools text-end">
-                                                                    <div class="dropdown">
-                                                                        <a href="#" class="btn btn-xs btn-trigger btn-icon dropdown-toggle me-n1" data-bs-toggle="dropdown" data-offset="0,5"><em class="icon ni ni-more-h"></em></a>
-                                                                        <div class="dropdown-menu dropdown-menu-end">
-                                                                            <ul class="link-list-opt no-bdr">
-                                                                                <li><a href="#"><em class="icon ni ni-check-round-cut"></em><span>Mark As Done</span></a></li>
-                                                                                <li><a href="#"><em class="icon ni ni-archive"></em><span>Mark As Archive</span></a></li>
-                                                                                <li><a href="#"><em class="icon ni ni-trash"></em><span>Remove Projects</span></a></li>
-                                                                            </ul>
-                                                                        </div>
-                                                                    </div>
-                                                                </th>
-                                                            </tr><!-- .nk-tb-item -->
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr class="nk-tb-item">
-                                                                <td class="nk-tb-col nk-tb-col-check">
-                                                                    <div class="custom-control custom-control-sm custom-checkbox notext">
-                                                                        <input type="checkbox" class="custom-control-input" id="pid-01">
-                                                                        <label class="custom-control-label" for="pid-01"></label>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col">
-                                                                    <a href="{% url 'project:detail' %}" class="project-title">
-                                                                        <div class="user-avatar sq bg-purple"><span>DD</span></div>
-                                                                        <div class="project-info">
-                                                                            <h6 class="title">Dashlite Development</h6>
-                                                                        </div>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <span>Abu Bin Istiak</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <ul class="project-users g-1">
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-primary"><span>A</span></div>
-                                                                        </li>
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-blue"><img src="./images/avatar/b-sm.jpg" alt=""></div>
-                                                                        </li>
-                                                                        <li>
-                                                                            <div class="user-avatar bg-light sm"><span>+12</span></div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xxl">
-                                                                    <span>Open</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-md">
-                                                                    <div class="project-list-progress">
-                                                                        <div class="progress progress-pill progress-md bg-light">
-                                                                            <div class="progress-bar" data-progress="93.5"></div>
-                                                                        </div>
-                                                                        <div class="project-progress-percent">93.5%</div>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-mb">
-                                                                    <span class="badge badge-dim bg-warning"><em class="icon ni ni-clock"></em><span>5 Days Left</span></span>
-                                                                </td>
-                                                                <td class="nk-tb-col nk-tb-col-tools">
-                                                                    <ul class="nk-tb-actions gx-1">
-                                                                        <li>
-                                                                            <div class="drodown">
-                                                                                <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
-                                                                                <div class="dropdown-menu dropdown-menu-end">
-                                                                                    <ul class="link-list-opt no-bdr">
-                                                                                        <li><a href="{% url 'project:detail' %}"><em class="icon ni ni-eye"></em><span>View Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-edit"></em><span>Edit Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-check-round-cut"></em><span>Mark As Done</span></a></li>
-                                                                                    </ul>
-                                                                                </div>
-                                                                            </div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                            </tr><!-- .nk-tb-item -->
-                                                            <tr class="nk-tb-item">
-                                                                <td class="nk-tb-col nk-tb-col-check">
-                                                                    <div class="custom-control custom-control-sm custom-checkbox notext">
-                                                                        <input type="checkbox" class="custom-control-input" id="pid-02">
-                                                                        <label class="custom-control-label" for="pid-02"></label>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col">
-                                                                    <a href="{% url 'project:detail' %}" class="project-title">
-                                                                        <div class="user-avatar sq bg-warning"><span>RW</span></div>
-                                                                        <div class="project-info">
-                                                                            <h6 class="title">Redesign Website</h6>
-                                                                        </div>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <span>Alex Ashley</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <ul class="project-users g-1">
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-primary"><img src="./images/avatar/c-sm.jpg" alt=""></div>
-                                                                        </li>
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-blue"><span>N</span></div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xxl">
-                                                                    <span>Onhold</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-md">
-                                                                    <div class="project-list-progress">
-                                                                        <div class="progress progress-pill progress-md bg-light">
-                                                                            <div class="progress-bar" data-progress="23"></div>
-                                                                        </div>
-                                                                        <div class="project-progress-percent">23%</div>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-mb">
-                                                                    <span class="badge badge-dim bg-light text-gray"><em class="icon ni ni-clock"></em><span>21 Days Left</span></span>
-                                                                </td>
-                                                                <td class="nk-tb-col nk-tb-col-tools">
-                                                                    <ul class="nk-tb-actions gx-1">
-                                                                        <li>
-                                                                            <div class="drodown">
-                                                                                <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
-                                                                                <div class="dropdown-menu dropdown-menu-end">
-                                                                                    <ul class="link-list-opt no-bdr">
-                                                                                        <li><a href="{% url 'project:detail' %}"><em class="icon ni ni-eye"></em><span>View Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-edit"></em><span>Edit Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-check-round-cut"></em><span>Mark As Done</span></a></li>
-                                                                                    </ul>
-                                                                                </div>
-                                                                            </div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                            </tr><!-- .nk-tb-item -->
-                                                            <tr class="nk-tb-item">
-                                                                <td class="nk-tb-col nk-tb-col-check">
-                                                                    <div class="custom-control custom-control-sm custom-checkbox notext">
-                                                                        <input type="checkbox" class="custom-control-input" id="pid-03">
-                                                                        <label class="custom-control-label" for="pid-03"></label>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col">
-                                                                    <a href="{% url 'project:detail' %}" class="project-title">
-                                                                        <div class="user-avatar sq bg-info"><span>KR</span></div>
-                                                                        <div class="project-info">
-                                                                            <h6 class="title">Keyword Research for SEO</h6>
-                                                                        </div>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <span>Emily Smith</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <ul class="project-users g-1">
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-primary"><img src="./images/avatar/a-sm.jpg" alt=""></div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xxl">
-                                                                    <span>Ongoing</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-md">
-                                                                    <div class="project-list-progress">
-                                                                        <div class="progress progress-pill progress-md bg-light">
-                                                                            <div class="progress-bar" data-progress="52.5"></div>
-                                                                        </div>
-                                                                        <div class="project-progress-percent">52.5%</div>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-mb">
-                                                                    <span class="badge badge-dim bg-danger"><em class="icon ni ni-clock"></em><span>Due Tomorrow</span></span>
-                                                                </td>
-                                                                <td class="nk-tb-col nk-tb-col-tools">
-                                                                    <ul class="nk-tb-actions gx-1">
-                                                                        <li>
-                                                                            <div class="drodown">
-                                                                                <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
-                                                                                <div class="dropdown-menu dropdown-menu-end">
-                                                                                    <ul class="link-list-opt no-bdr">
-                                                                                        <li><a href="{% url 'project:detail' %}"><em class="icon ni ni-eye"></em><span>View Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-edit"></em><span>Edit Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-check-round-cut"></em><span>Mark As Done</span></a></li>
-                                                                                    </ul>
-                                                                                </div>
-                                                                            </div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                            </tr><!-- .nk-tb-item -->
-                                                            <tr class="nk-tb-item">
-                                                                <td class="nk-tb-col nk-tb-col-check">
-                                                                    <div class="custom-control custom-control-sm custom-checkbox notext">
-                                                                        <input type="checkbox" class="custom-control-input" id="pid-04">
-                                                                        <label class="custom-control-label" for="pid-04"></label>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col">
-                                                                    <a href="{% url 'project:detail' %}" class="project-title">
-                                                                        <div class="user-avatar sq bg-danger"><span>WD</span></div>
-                                                                        <div class="project-info">
-                                                                            <h6 class="title">Website Development</h6>
-                                                                        </div>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <span>Michael Wood</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <ul class="project-users g-1">
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-blue"><span>N</span></div>
-                                                                        </li>
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-primary"><img src="./images/avatar/c-sm.jpg" alt=""></div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xxl">
-                                                                    <span>Open</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-md">
-                                                                    <div class="project-list-progress">
-                                                                        <div class="progress progress-pill progress-md bg-light">
-                                                                            <div class="progress-bar" data-progress="65.5"></div>
-                                                                        </div>
-                                                                        <div class="project-progress-percent">65.5%</div>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-mb">
-                                                                    <span class="badge badge-dim bg-light text-gray"><em class="icon ni ni-clock"></em><span>16 Days Left</span></span>
-                                                                </td>
-                                                                <td class="nk-tb-col nk-tb-col-tools">
-                                                                    <ul class="nk-tb-actions gx-1">
-                                                                        <li>
-                                                                            <div class="drodown">
-                                                                                <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
-                                                                                <div class="dropdown-menu dropdown-menu-end">
-                                                                                    <ul class="link-list-opt no-bdr">
-                                                                                        <li><a href="{% url 'project:detail' %}"><em class="icon ni ni-eye"></em><span>View Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-edit"></em><span>Edit Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-check-round-cut"></em><span>Mark As Done</span></a></li>
-                                                                                    </ul>
-                                                                                </div>
-                                                                            </div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                            </tr><!-- .nk-tb-item -->
-                                                            <tr class="nk-tb-item">
-                                                                <td class="nk-tb-col nk-tb-col-check">
-                                                                    <div class="custom-control custom-control-sm custom-checkbox notext">
-                                                                        <input type="checkbox" class="custom-control-input" id="pid-05">
-                                                                        <label class="custom-control-label" for="pid-05"></label>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col">
-                                                                    <a href="{% url 'project:detail' %}" class="project-title">
-                                                                        <div class="user-avatar sq bg-blue"><span>SO</span></div>
-                                                                        <div class="project-info">
-                                                                            <h6 class="title">SEO Optimization</h6>
-                                                                        </div>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <span>Emily Smith</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <ul class="project-users g-1">
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-primary"><img src="./images/avatar/a-sm.jpg" alt=""></div>
-                                                                        </li>
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-primary"><img src="./images/avatar/d-sm.jpg" alt=""></div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xxl">
-                                                                    <span>Closed</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-md">
-                                                                    <div class="project-list-progress">
-                                                                        <div class="progress progress-pill progress-md bg-light">
-                                                                            <div class="progress-bar" data-progress="100"></div>
-                                                                        </div>
-                                                                        <div class="project-progress-percent">100%</div>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-mb">
-                                                                    <span class="badge badge-dim bg-success"><em class="icon ni ni-clock"></em><span>Done</span></span>
-                                                                </td>
-                                                                <td class="nk-tb-col nk-tb-col-tools">
-                                                                    <ul class="nk-tb-actions gx-1">
-                                                                        <li>
-                                                                            <div class="drodown">
-                                                                                <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
-                                                                                <div class="dropdown-menu dropdown-menu-end">
-                                                                                    <ul class="link-list-opt no-bdr">
-                                                                                        <li><a href="{% url 'project:detail' %}"><em class="icon ni ni-eye"></em><span>View Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-edit"></em><span>Edit Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-check-round-cut"></em><span>Mark As Done</span></a></li>
-                                                                                    </ul>
-                                                                                </div>
-                                                                            </div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                            </tr><!-- .nk-tb-item -->
-                                                            <tr class="nk-tb-item">
-                                                                <td class="nk-tb-col nk-tb-col-check">
-                                                                    <div class="custom-control custom-control-sm custom-checkbox notext">
-                                                                        <input type="checkbox" class="custom-control-input" id="uid1">
-                                                                        <label class="custom-control-label" for="uid1"></label>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col">
-                                                                    <a href="{% url 'project:detail' %}" class="project-title">
-                                                                        <div class="user-avatar sq bg-purple"><span>DD</span></div>
-                                                                        <div class="project-info">
-                                                                            <h6 class="title">Dashlite Development</h6>
-                                                                        </div>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <span>Abu Bin Istiak</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <ul class="project-users g-1">
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-danger"><span>D</span></div>
-                                                                        </li>
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-primary"><img src="./images/avatar/c-sm.jpg" alt=""></div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xxl">
-                                                                    <span>Open</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-md">
-                                                                    <div class="project-list-progress">
-                                                                        <div class="progress progress-pill progress-md bg-light">
-                                                                            <div class="progress-bar" data-progress="65.5"></div>
-                                                                        </div>
-                                                                        <div class="project-progress-percent">65.5%</div>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-mb">
-                                                                    <span class="badge badge-dim bg-warning"><em class="icon ni ni-clock"></em><span>5 Days Left</span></span>
-                                                                </td>
-                                                                <td class="nk-tb-col nk-tb-col-tools">
-                                                                    <ul class="nk-tb-actions gx-1">
-                                                                        <li>
-                                                                            <div class="drodown">
-                                                                                <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
-                                                                                <div class="dropdown-menu dropdown-menu-end">
-                                                                                    <ul class="link-list-opt no-bdr">
-                                                                                        <li><a href="{% url 'project:detail' %}"><em class="icon ni ni-eye"></em><span>View Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-edit"></em><span>Edit Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-check-round-cut"></em><span>Mark As Done</span></a></li>
-                                                                                    </ul>
-                                                                                </div>
-                                                                            </div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                            </tr><!-- .nk-tb-item -->
-                                                            <tr class="nk-tb-item">
-                                                                <td class="nk-tb-col nk-tb-col-check">
-                                                                    <div class="custom-control custom-control-sm custom-checkbox notext">
-                                                                        <input type="checkbox" class="custom-control-input" id="pid-07">
-                                                                        <label class="custom-control-label" for="pid-07"></label>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col">
-                                                                    <a href="{% url 'project:detail' %}" class="project-title">
-                                                                        <div class="user-avatar sq bg-danger"><span>WD</span></div>
-                                                                        <div class="project-info">
-                                                                            <h6 class="title">Website Development</h6>
-                                                                        </div>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <span>Alex Ashley</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <ul class="project-users g-1">
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-primary"><img src="./images/avatar/b-sm.jpg" alt=""></div>
-                                                                        </li>
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-indigo"><span>P</span></div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xxl">
-                                                                    <span>Open</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-md">
-                                                                    <div class="project-list-progress">
-                                                                        <div class="progress progress-pill progress-md bg-light">
-                                                                            <div class="progress-bar" data-progress="65.5"></div>
-                                                                        </div>
-                                                                        <div class="project-progress-percent">65.5%</div>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-mb">
-                                                                    <span class="badge badge-dim bg-light text-gray"><em class="icon ni ni-clock"></em><span>21 Days Left</span></span>
-                                                                </td>
-                                                                <td class="nk-tb-col nk-tb-col-tools">
-                                                                    <ul class="nk-tb-actions gx-1">
-                                                                        <li>
-                                                                            <div class="drodown">
-                                                                                <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
-                                                                                <div class="dropdown-menu dropdown-menu-end">
-                                                                                    <ul class="link-list-opt no-bdr">
-                                                                                        <li><a href="{% url 'project:detail' %}"><em class="icon ni ni-eye"></em><span>View Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-edit"></em><span>Edit Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-check-round-cut"></em><span>Mark As Done</span></a></li>
-                                                                                    </ul>
-                                                                                </div>
-                                                                            </div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                            </tr><!-- .nk-tb-item -->
-                                                            <tr class="nk-tb-item">
-                                                                <td class="nk-tb-col nk-tb-col-check">
-                                                                    <div class="custom-control custom-control-sm custom-checkbox notext">
-                                                                        <input type="checkbox" class="custom-control-input" id="pid-08">
-                                                                        <label class="custom-control-label" for="pid-08"></label>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col">
-                                                                    <a href="{% url 'project:detail' %}" class="project-title">
-                                                                        <div class="user-avatar sq bg-warning"><span>RW</span></div>
-                                                                        <div class="project-info">
-                                                                            <h6 class="title">Redesign Website</h6>
-                                                                        </div>
-                                                                    </a>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <span>Michael Wood</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xl">
-                                                                    <ul class="project-users g-1">
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-pink"><span>I</span></div>
-                                                                        </li>
-                                                                        <li>
-                                                                            <div class="user-avatar sm bg-primary"><img src="./images/avatar/a-sm.jpg" alt=""></div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-xxl">
-                                                                    <span>Onhold</span>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-md">
-                                                                    <div class="project-list-progress">
-                                                                        <div class="progress progress-pill progress-md bg-light">
-                                                                            <div class="progress-bar" data-progress="23"></div>
-                                                                        </div>
-                                                                        <div class="project-progress-percent">23%</div>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="nk-tb-col tb-col-mb">
-                                                                    <span class="badge badge-dim bg-light text-gray"><em class="icon ni ni-clock"></em><span>21 Days Left</span></span>
-                                                                </td>
-                                                                <td class="nk-tb-col nk-tb-col-tools">
-                                                                    <ul class="nk-tb-actions gx-1">
-                                                                        <li>
-                                                                            <div class="drodown">
-                                                                                <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
-                                                                                <div class="dropdown-menu dropdown-menu-end">
-                                                                                    <ul class="link-list-opt no-bdr">
-                                                                                        <li><a href="{% url 'project:detail' %}"><em class="icon ni ni-eye"></em><span>View Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-edit"></em><span>Edit Project</span></a></li>
-                                                                                        <li><a href="#"><em class="icon ni ni-check-round-cut"></em><span>Mark As Done</span></a></li>
-                                                                                    </ul>
-                                                                                </div>
-                                                                            </div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </td>
-                                                            </tr><!-- .nk-tb-item -->
-                                                        </tbody>
-                                                    </table><!-- .nk-tb-list -->
-                                                </div><!-- .card-inner -->
-                                                <div class="card-inner">
-                                                    <div class="nk-block-between-md g-3">
-                                                        <div class="g">
-                                                            <ul class="pagination justify-content-center justify-content-md-start">
-                                                                <li class="page-item"><a class="page-link" href="#">Prev</a></li>
-                                                                <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                                                <li class="page-item"><span class="page-link"><em class="icon ni ni-more-h"></em></span></li>
-                                                                <li class="page-item"><a class="page-link" href="#">6</a></li>
-                                                                <li class="page-item"><a class="page-link" href="#">7</a></li>
-                                                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
-                                                            </ul><!-- .pagination -->
-                                                        </div>
-                                                        <div class="g">
-                                                            <div class="pagination-goto d-flex justify-content-center justify-content-md-start gx-3">
-                                                                <div>Page</div>
-                                                                <div>
-                                                                    <select class="form-select js-select2" data-search="on" data-dropdown="xs center">
-                                                                        <option value="page-1">1</option>
-                                                                        <option value="page-2">2</option>
-                                                                        <option value="page-4">4</option>
-                                                                        <option value="page-5">5</option>
-                                                                        <option value="page-6">6</option>
-                                                                        <option value="page-7">7</option>
-                                                                        <option value="page-8">8</option>
-                                                                        <option value="page-9">9</option>
-                                                                        <option value="page-10">10</option>
-                                                                        <option value="page-11">11</option>
-                                                                        <option value="page-12">12</option>
-                                                                        <option value="page-13">13</option>
-                                                                        <option value="page-14">14</option>
-                                                                        <option value="page-15">15</option>
-                                                                        <option value="page-16">16</option>
-                                                                        <option value="page-17">17</option>
-                                                                        <option value="page-18">18</option>
-                                                                        <option value="page-19">19</option>
-                                                                        <option value="page-20">20</option>
-                                                                    </select>
-                                                                </div>
-                                                                <div>OF 102</div>
-                                                            </div>
-                                                        </div><!-- .pagination-goto -->
-                                                    </div><!-- .nk-block-between -->
-                                                </div><!-- .card-inner -->
-                                            </div><!-- .card-inner-group -->
-                                        </div><!-- .card -->
-                                    </div><!-- .nk-block -->
+<div class="nk-content-wrap">
+    <div class="nk-block-head nk-block-head-sm">
+        <div class="nk-block-between">
+            <div class="nk-block-head-content">
+                <h3 class="nk-block-title page-title">Projects</h3>
+                <div class="nk-block-des text-soft">
+                    <p>You have total {{ total_projects }} projects.</p>
+                </div>
+            </div>
+            <div class="nk-block-head-content">
+                <div class="toggle-wrap nk-block-tools-toggle">
+                    <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu">
+                        <em class="icon ni ni-menu-alt-r"></em>
+                    </a>
+                    <div class="toggle-expand-content" data-content="pageMenu">
+                        <ul class="nk-block-tools g-3">
+                            <li>
+                                <div class="drodown">
+                                    <a href="#" class="dropdown-toggle btn btn-white btn-dim btn-outline-light" data-bs-toggle="dropdown">
+                                        <em class="d-none d-sm-inline icon ni ni-filter-alt"></em>
+                                        <span>Filtered By</span>
+                                        <em class="dd-indc icon ni ni-chevron-right"></em>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end">
+                                        <ul class="link-list-opt no-bdr">
+                                            <li><a href="?filter=active"><span>Open</span></a></li>
+                                            <li><a href="?filter=completed"><span>Closed</span></a></li>
+                                            <li><a href="?filter=on_hold"><span>Onhold</span></a></li>
+                                        </ul>
+                                    </div>
                                 </div>
-                                <!-- footer @s -->
+                            </li>
+                            <li class="nk-block-tools-opt d-none d-sm-block">
+                                <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreateProject">
+                                    <em class="icon ni ni-plus"></em>
+                                    <span>Add Project</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nk-block">
+        <div class="card card-bordered card-stretch">
+            <div class="card-inner-group">
+                <div class="card-inner p-0">
+                    <table class="nk-tb-list nk-tb-ulist">
+                        <thead>
+                            <tr class="nk-tb-item nk-tb-head">
+                                <th class="nk-tb-col nk-tb-col-check">
+                                    <div class="custom-control custom-control-sm custom-checkbox notext">
+                                        <input type="checkbox" class="custom-control-input" id="pid-all">
+                                        <label class="custom-control-label" for="pid-all"></label>
+                                    </div>
+                                </th>
+                                <th class="nk-tb-col"><span class="sub-text">Project Name</span></th>
+                                <th class="nk-tb-col tb-col-xl"><span class="sub-text">Project Lead</span></th>
+                                <th class="nk-tb-col tb-col-xl"><span class="sub-text">Team</span></th>
+                                <th class="nk-tb-col tb-col-xxl"><span class="sub-text">Status</span></th>
+                                <th class="nk-tb-col tb-col-md"><span class="sub-text">Progress</span></th>
+                                <th class="nk-tb-col tb-col-mb"><span class="sub-text">Deadline</span></th>
+                                <th class="nk-tb-col nk-tb-col-tools text-end"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr class="nk-tb-item">
+                                <td class="nk-tb-col nk-tb-col-check">
+                                    <div class="custom-control custom-control-sm custom-checkbox notext">
+                                        <input type="checkbox" class="custom-control-input" id="pid-{{ project.uuid }}">
+                                        <label class="custom-control-label" for="pid-{{ project.uuid }}"></label>
+                                    </div>
+                                </td>
+                                <td class="nk-tb-col">
+                                    <a href="{% url 'projects:project_detail' uuid=project.uuid %}" class="project-title">
+                                        <div class="user-avatar sq bg-{{ project.status_color }}">
+                                            <span>{{ project.title|slice:":2"|upper }}</span>
+                                        </div>
+                                        <div class="project-info">
+                                            <h6 class="title">{{ project.title }}</h6>
+                                        </div>
+                                    </a>
+                                </td>
+                                <td class="nk-tb-col tb-col-xl">
+                                    <span>{{ project.created_by.get_full_name }}</span>
+                                </td>
+                                <td class="nk-tb-col tb-col-xl">
+                                    <ul class="project-users g-1">
+                                        {% for member in project.team_members.all|slice:":3" %}
+                                        <li>
+                                            {% if member.avatar %}
+                                            <div class="user-avatar sm bg-primary">
+                                                <img src="{{ member.avatar.url }}" alt="{{ member.get_full_name }}">
+                                            </div>
+                                            {% else %}
+                                            <div class="user-avatar sm bg-primary">
+                                                <span>{{ member.get_initials }}</span>
+                                            </div>
+                                            {% endif %}
+                                        </li>
+                                        {% endfor %}
+                                        {% if project.team_count > 3 %}
+                                        <li>
+                                            <div class="user-avatar bg-light sm">
+                                                <span>+{{ project.team_count|add:"-3" }}</span>
+                                            </div>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </td>
+                                <td class="nk-tb-col tb-col-xxl">
+                                    <span class="badge badge-dim bg-{{ project.status_color }}">
+                                        {{ project.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="nk-tb-col tb-col-md">
+                                    <div class="project-list-progress">
+                                        <div class="progress progress-pill progress-md bg-light">
+                                            <div class="progress-bar" data-progress="{{ project.progress }}" 
+                                                 style="width: {{ project.progress }}%"></div>
+                                        </div>
+                                        <div class="project-progress-percent">{{ project.progress }}%</div>
+                                    </div>
+                                </td>
+                                <td class="nk-tb-col tb-col-mb">
+                                    {% if project.status == 'completed' %}
+                                        <span class="badge badge-dim bg-success">
+                                            <em class="icon ni ni-check"></em>
+                                            <span>Done</span>
+                                        </span>
+                                    {% else %}
+                                        {% with days_left=project.days_until_due %}
+                                            {% if days_left <= 0 %}
+                                                <span class="badge badge-dim bg-danger">
+                                                    <em class="icon ni ni-clock"></em>
+                                                    <span>Overdue</span>
+                                                </span>
+                                            {% elif days_left <= 5 %}
+                                                <span class="badge badge-dim bg-warning">
+                                                    <em class="icon ni ni-clock"></em>
+                                                    <span>{{ days_left }} Days Left</span>
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-dim bg-light text-gray">
+                                                    <em class="icon ni ni-calendar"></em>
+                                                    <span>{{ days_left }} Days Left</span>
+                                                </span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                </td>
+                                <td class="nk-tb-col nk-tb-col-tools">
+                                    <ul class="nk-tb-actions gx-1">
+                                        <li>
+                                            <div class="drodown">
+                                                <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger" data-bs-toggle="dropdown">
+                                                    <em class="icon ni ni-more-h"></em>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <ul class="link-list-opt no-bdr">
+                                                        <li>
+                                                            <a href="{% url 'projects:project_detail' uuid=project.uuid %}">
+                                                                <em class="icon ni ni-eye"></em>
+                                                                <span>View Project</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="#" class="edit-project" data-id="{{ project.uuid }}">
+                                                                <em class="icon ni ni-edit"></em>
+                                                                <span>Edit Project</span>
+                                                            </a>
+                                                        </li>
+                                                        {% if project.status != 'completed' %}
+                                                        <li>
+                                                            <a href="#" class="mark-complete" data-id="{{ project.uuid }}">
+                                                                <em class="icon ni ni-check-round-cut"></em>
+                                                                <span>Mark As Done</span>
+                                                            </a>
+                                                        </li>
+                                                        {% endif %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="card-inner">
+                    <div class="nk-block-between-md g-3">
+                        <div class="g">
+                            <ul class="pagination justify-content-center justify-content-md-start">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a>
+                                </li>
+                                {% endif %}
                                 
-                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Handle check all checkbox
+        $('#pid-all').on('change', function() {
+            $('.custom-control-input').prop('checked', $(this).is(':checked'));
+        });
+
+        // Initialize progress bars
+        $('.progress-bar').each(function() {
+            var progress = $(this).data('progress');
+            $(this).css('width', progress + '%');
+            
+            // Add color based on progress
+            if (progress >= 75) {
+                $(this).addClass('bg-success');
+            } else if (progress >= 50) {
+                $(this).addClass('bg-info');
+            } else if (progress >= 25) {
+                $(this).addClass('bg-warning');
+            } else {
+                $(this).addClass('bg-danger');
+            }
+        });
+
+        // Handle mark as complete
+        $('.mark-complete').click(function(e) {
+            e.preventDefault();
+            var projectId = $(this).data('id');
+            
+            if (confirm('Are you sure you want to mark this project as complete?')) {
+                $.ajax({
+                    url: `/projects/${projectId}/complete/`,
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.reload();
+                        }
+                    },
+                    error: function(xhr) {
+                        alert('Error updating project status');
+                    }
+                });
+            }
+        });
+
+        // Handle project filtering
+        $('.filter-option').click(function(e) {
+            e.preventDefault();
+            var filter = $(this).data('filter');
+            window.location.href = `?filter=${filter}`;
+        });
+
+        // Project search functionality
+        let searchTimeout;
+        $('#project-search').on('keyup', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                var searchQuery = $(this).val();
+                window.location.href = `?search=${searchQuery}`;
+            }, 500);
+        });
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}
+
+<!-- Add Project Modal -->
+{% block modals %}
+<div class="modal fade" id="modalCreateProject">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Project</h5>
+                <a href="#" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <em class="icon ni ni-cross"></em>
+                </a>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'projects:project_create' %}" method="POST" class="form-validate">
+                    {% csrf_token %}
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label" for="title">Project Title</label>
+                                <div class="form-control-wrap">
+                                    <input type="text" class="form-control" id="title" name="title" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label" for="description">Description</label>
+                                <div class="form-control-wrap">
+                                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="start_date">Start Date</label>
+                                <div class="form-control-wrap">
+                                    <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="end_date">End Date</label>
+                                <div class="form-control-wrap">
+                                    <input type="date" class="form-control" id="end_date" name="end_date" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="status">Status</label>
+                                <div class="form-control-wrap">
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="planning">Planning</option>
+                                        <option value="active">Active</option>
+                                        <option value="on_hold">On Hold</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="team_members">Team Members</label>
+                                <div class="form-control-wrap">
+                                    <select class="form-select js-select2" id="team_members" name="team_members" multiple>
+                                        {% for user in users %}
+                                        <option value="{{ user.id }}">{{ user.get_full_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Create Project</button>
+                                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

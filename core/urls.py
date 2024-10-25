@@ -9,16 +9,7 @@ from .views import LogoutView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),  # This handles all auth URLs
-
-    # Your custom login view (if you want to keep it)
-    path('login/', auth_views.LoginView.as_view(
-        template_name='socialaccount/login.html',
-        redirect_authenticated_user=True
-    ), name='login'),
-
     path('logout/', LogoutView.as_view(), name='logout'),
-
-    # Your other URLs...
     path('', include('app.web.url')),
     path('tools/', include('app.tools.url')),
     path('project/', include('app.project.url')),

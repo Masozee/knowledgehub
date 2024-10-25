@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from app.people.models import *
+from app.project.models import *
 
 
 
@@ -19,10 +20,21 @@ def index(request):
     except CustomUser.DoesNotExist:
         messages.error(request, 'User not found.')
         return redirect('login')
-
+#homepage ==========================================================================================================================================================
 @login_required
 def userHome(request):
     return render(request, 'dashboard/user/index.html')
+
+
+#project ==========================================================================================================================================================
+def projectList(request):
+    return render(request, 'dashboard/project/index.html')
+
+def projectDetail(request):
+    return render(request, 'dashboard/project/detail.html')
+
+
+
 
 @login_required
 def wiki(request):

@@ -5,7 +5,13 @@ from . import views
 app_name = 'project'
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('detail/', views.detail, name='detail'),
+    path('',
+         views.ProjectListView.as_view(),
+         name='project_list'
+         ),
+    path('<uuid:uuid>/',
+         views.ProjectDetailView.as_view(),
+         name='project_detail'
+         ),
     path('detail/progress/', views.progress, name='detail-progress'),
 ]
