@@ -79,7 +79,7 @@
                                     </div>
                                 </td>
                                 <td class="nk-tb-col">
-                                    <a href="{% url 'projects:project_detail' uuid=project.uuid %}" class="project-title">
+                                    <a href="{% url 'project:project_detail' uuid=project.uuid %}" class="project-title">
                                         <div class="user-avatar sq bg-{{ project.status_color }}">
                                             <span>{{ project.title|slice:":2"|upper }}</span>
                                         </div>
@@ -123,7 +123,7 @@
                                 <td class="nk-tb-col tb-col-md">
                                     <div class="project-list-progress">
                                         <div class="progress progress-pill progress-md bg-light">
-                                            <div class="progress-bar" data-progress="{{ project.progress }}" 
+                                            <div class="progress-bar" data-progress="{{ project.progress }}"
                                                  style="width: {{ project.progress }}%"></div>
                                         </div>
                                         <div class="project-progress-percent">{{ project.progress }}%</div>
@@ -166,7 +166,7 @@
                                                 <div class="dropdown-menu dropdown-menu-end">
                                                     <ul class="link-list-opt no-bdr">
                                                         <li>
-                                                            <a href="{% url 'projects:project_detail' uuid=project.uuid %}">
+                                                            <a href="{% url 'project:project_detail' uuid=project.uuid %}">
                                                                 <em class="icon ni ni-eye"></em>
                                                                 <span>View Project</span>
                                                             </a>
@@ -208,7 +208,7 @@
                                     <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a>
                                 </li>
                                 {% endif %}
-                                
+
                                 {% for num in page_obj.paginator.page_range %}
                                     {% if page_obj.number == num %}
                                         <li class="page-item active">
@@ -220,7 +220,7 @@
                                         </li>
                                     {% endif %}
                                 {% endfor %}
-                                
+
                                 {% if page_obj.has_next %}
                                 <li class="page-item">
                                     <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
@@ -249,7 +249,7 @@
         $('.progress-bar').each(function() {
             var progress = $(this).data('progress');
             $(this).css('width', progress + '%');
-            
+
             // Add color based on progress
             if (progress >= 75) {
                 $(this).addClass('bg-success');
@@ -266,7 +266,7 @@
         $('.mark-complete').click(function(e) {
             e.preventDefault();
             var projectId = $(this).data('id');
-            
+
             if (confirm('Are you sure you want to mark this project as complete?')) {
                 $.ajax({
                     url: `/projects/${projectId}/complete/`,
@@ -334,7 +334,7 @@
                 </a>
             </div>
             <div class="modal-body">
-                <form action="{% url 'projects:project_create' %}" method="POST" class="form-validate">
+                <form action="{% url 'project:project_create' %}" method="POST" class="form-validate">
                     {% csrf_token %}
                     <div class="row g-4">
                         <div class="col-12">

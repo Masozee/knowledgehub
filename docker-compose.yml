@@ -1,0 +1,68 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: sh -c "
+      python manage.py wait_for_db &&
+      python manage.py migrate &&
+      python manage.py collectstatic --noinput &&
+      granian --interface asgi --host 0.0.0.0 --port 8000 --workers 4 core.asgi:application
+      "
+    volumes:
+      - .:/app  # For development only, remove in production
+      - static_volume:/app/staticfiles:rw
+      - media_volume:/app/media:rw
+    environment:
+      - DJANGO_SETTINGS_MODULE=core.settings
+      - PYTHONPATH=/app
+      - CSRF_TRUSTED_ORIGINS=https://yourdomain.com,http://localhost
+    expose:
+      - 8000
+    env_file:
+      - .env.production
+    depends_on:
+      - db
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env.production
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.25-alpine
+    volumes:
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+      - ./nginx:/etc/nginx/conf.d:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

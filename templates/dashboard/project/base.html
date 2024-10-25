@@ -208,7 +208,7 @@
                                             </a>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="{% url 'project:detail-progress' %}" class="nk-menu-link">
+                                            <a href="#" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-file-text"></em></span>
                                                 <span class="nk-menu-text">Progress</span>
                                             </a>
@@ -446,6 +446,8 @@
     <script src="{% static 'dashboard/assets/js/bundle.js' %}"></script>
     <script src="{% static 'dashboard/assets/js/scripts.js' %}"></script>
     {% block js %}
+    {% endblock %}
+    {% block extra_js %}
     {% endblock %}
 </body>
 

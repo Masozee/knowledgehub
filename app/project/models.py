@@ -52,7 +52,7 @@ class Project(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('project_detail', kwargs={'uuid': self.uuid})
+        return reverse('project:project_detail', kwargs={'uuid': self.uuid})
 
     @property
     def status_color(self):
