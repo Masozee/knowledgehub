@@ -11,4 +11,11 @@ urlpatterns = [
     path('chat/<uuid:conversation_uuid>/send/', views.send_message, name='send_message'),
     path('chat/<uuid:conversation_uuid>/delete/', views.delete_conversation, name='delete_conversation'),
     path('chat/<uuid:conversation_uuid>/clear/', views.clear_conversation, name='clear_conversation'),
+
+    #notetaking
+    path('videos/upload/', views.video_upload, name='video_upload'),
+    # urls.py (likely configuration)
+    path('videos/notes/<uuid:note_id>/', views.video_notes, name='video_notes'),
+    path('videos/library/', views.video_library, name='video_library'),
+    path('videos/status/<uuid:note_id>/', views.video_processing_status, name='video_processing_status'),
 ]

@@ -10,9 +10,13 @@ from django.views.decorators.http import require_POST
 from django.contrib.contenttypes.models import ContentType
 import json
 from django.core.serializers.json import DjangoJSONEncoder
+from .video_service import *
+from django.views.decorators.http import require_http_methods
+from django.urls import reverse
+from .forms import *
 
 # Local imports
-from .models import Conversation, Message, TextContent, CodeContent, ImageContent
+from .models import *
 from .ai_services import call_claude_api, call_openai_api, call_perplexity_api, process_ai_response, generate_title
 
 logger = logging.getLogger(__name__)
@@ -73,7 +77,7 @@ def chat_list(request):
     context = {
         'conversations': conversation_data,
     }
-    return render(request, 'dashboard/chat/index.html', context)
+    return render(request, 'dashboard/ai/index.html', context)
 
 @login_required
 def chat_detail(request, conversation_uuid):
@@ -91,7 +95,7 @@ def chat_detail(request, conversation_uuid):
         'all_chats': all_chats,
         'ai_services': ai_services,
     }
-    return render(request, 'dashboard/chat/detail.html', context)
+    return render(request, 'dashboard/ai/detail.html', context)
 
 @login_required
 def new_conversation(request):
@@ -218,3 +222,77 @@ def clear_conversation(request, conversation_uuid):
         return JsonResponse({'success': True})
     except Conversation.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Conversation not found'}, status=404)
+
+
+@login_required
+def video_upload(request):
+    """View for video upload form"""
+    if request.method == 'POST':
+        form = VideoUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                processor = VideoProcessor(user=request.user)
+
+                if form.cleaned_data['video_type'] == 'youtube':
+                    video_note = processor.process_youtube_url(
+                        form.cleaned_data['youtube_url']
+                    )
+                else:
+                    video_note = processor.process_local_video(
+                        request.FILES['video_file']
+                    )
+
+                return redirect('tools:video_notes', note_id=video_note.id)
+
+            except Exception as e:
+                logger.exception("Error processing video")
+                form.add_error(None, f"Error processing video: {str(e)}")
+    else:
+        form = VideoUploadForm()
+
+    return render(request, 'dashboard/ai/videos/upload.html', {'form': form})
+
+
+@login_required
+def video_notes(request, note_id):
+    """View for displaying video notes"""
+    video_note = get_object_or_404(VideoNote, id=note_id)
+    return render(request, 'dashboard/ai/videos/notes.html', {
+        'video_note': video_note,
+        'conversation': video_note.conversation
+    })
+
+
+@login_required
+def video_library(request):
+    """View for displaying user's video library"""
+    videos = VideoContent.objects.select_related('videonote').filter(
+        videonote__conversation__user=request.user
+    ).order_by('-created_at')
+
+    # Debug print
+    for video in videos:
+        print(f"Video: {video.title}")
+        print(f"VideoNote ID: {video.videonote.id if hasattr(video, 'videonote') else 'No note'}")
+
+    context = {
+        'videos': videos,
+        'debug': True  # Add this for debugging
+    }
+    return render(request, 'dashboard/ai/videos/library.html', context)
+
+
+@login_required
+@require_http_methods(['GET'])
+def video_processing_status(request, note_id):
+    """AJAX endpoint for checking video processing status"""
+    try:
+        note = VideoNote.objects.get(id=note_id)
+        return JsonResponse({
+            'status': 'completed',
+            'redirect_url': reverse('tools:video_notes', args=[note_id])
+        })
+    except VideoNote.DoesNotExist:
+        return JsonResponse({
+            'status': 'processing'
+        })

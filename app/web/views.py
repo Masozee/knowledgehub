@@ -50,4 +50,4 @@ def assetList(request):
 
 @login_required
 def chatAI(request):
-    return render(request, 'dashboard/chat/index.html')
+    return render(request, 'dashboard/ai/index.html')

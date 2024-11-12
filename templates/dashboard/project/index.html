@@ -27,9 +27,9 @@
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-end">
                                         <ul class="link-list-opt no-bdr">
-                                            <li><a href="?filter=active"><span>Open</span></a></li>
-                                            <li><a href="?filter=completed"><span>Closed</span></a></li>
-                                            <li><a href="?filter=on_hold"><span>Onhold</span></a></li>
+                                            <li><a href="{% url 'project:project_list' %}?filter=active"><span>Open</span></a></li>
+                                            <li><a href="{% url 'project:project_list' %}?filter=completed"><span>Closed</span></a></li>
+                                            <li><a href="{% url 'project:project_list' %}?filter=on_hold"><span>Onhold</span></a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -80,9 +80,7 @@
                                 </td>
                                 <td class="nk-tb-col">
                                     <a href="{% url 'project:project_detail' uuid=project.uuid %}" class="project-title">
-                                        <div class="user-avatar sq bg-{{ project.status_color }}">
-                                            <span>{{ project.title|slice:":2"|upper }}</span>
-                                        </div>
+
                                         <div class="project-info">
                                             <h6 class="title">{{ project.title }}</h6>
                                         </div>

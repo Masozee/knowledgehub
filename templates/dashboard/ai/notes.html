@@ -1,0 +1,78 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Create AI-Powered Notes</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <form id="videoForm" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Video Source</label>
+                    <input type="url" name="url" id="videoUrl" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                           placeholder="Enter YouTube URL">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">AI Service</label>
+                    <select name="ai_service" id="aiService" 
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        <option value="claude">Claude (Anthropic)</option>
+                        <option value="openai">GPT-4 (OpenAI)</option>
+                        <option value="perplexity">Perplexity</option>
+                    </select>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-blue-600 text-white rounded-md py-2 hover:bg-blue-700">
+                    Generate Notes
+                </button>
+            </form>
+        </div>
+
+        <div id="processingStatus" class="hidden mt-4 p-4 bg-yellow-100 rounded-lg">
+            <p class="text-yellow-700">Processing video... This may take a few minutes.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('videoForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const form = e.target;
+    const statusDiv = document.getElementById('processingStatus');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    // Show processing status
+    statusDiv.classList.remove('hidden');
+    submitButton.disabled = true;
+    
+    try {
+        const response = await fetch('{% url "tools:process_video" %}', {
+            method: 'POST',
+            body: new FormData(form),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = data.conversation_url;
+        } else {
+            throw new Error(data.error || 'Failed to process video');
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        statusDiv.classList.add('hidden');
+        submitButton.disabled = false;
+    }
+});
+</script>
+{% endblock %}

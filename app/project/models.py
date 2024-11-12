@@ -120,7 +120,6 @@ class Project(models.Model):
         """Check if project is active"""
         return self.status == 'active'
 
-
 class Task(models.Model):
     """Task model for project tasks"""
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -153,7 +152,6 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
-
 class ProjectMember(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -164,6 +162,7 @@ class ProjectMember(models.Model):
             ('manager', 'Project Manager'),
             ('member', 'Team Member'),
             ('viewer', 'Viewer'),
+            ('outreach', 'Team Outreach'),
         ),
         default='member'
     )
@@ -278,6 +277,10 @@ class Event(models.Model):
     expenses = GenericRelation('finance.PosExpense')
     document_proofs = GenericRelation('finance.DocumentProof')
     organizers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='organized_events')
+
+    class Meta:
+        verbose_name = 'Calendar Project'
+        verbose_name_plural = 'Calendar Projects'
 
 class Progress(models.Model):
     PROGRESS_TYPES = [

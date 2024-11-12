@@ -1,22 +1,22 @@
-# views.py
-import os
-from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib import messages
-from django.conf import settings
-from django.urls import reverse
-from allauth.socialaccount.models import SocialToken, SocialAccount
+from datetime import datetime
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from .models import PhotoBackup, Photo
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.shortcuts import redirect, render
+from django.utils.timezone import make_aware
+from allauth.socialaccount.models import SocialAccount, SocialToken
+import os
 import requests
 import logging
-from datetime import datetime
-from django.utils.timezone import make_aware
-import json
+from .models import *
+
+
 
 logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 def is_admin(user):
@@ -74,35 +74,33 @@ def save_photo(backup, item, photo_url):
     return False
 
 
-@login_required
-@user_passes_test(is_admin)
-def backup_photos(request):
+def process_user_backup(user, admin_user=None):
+    """Helper function to process backup for a single user"""
     backup = None
-
     try:
         # Check for Google account connection
         try:
             social_account = SocialAccount.objects.get(
-                user=request.user,
+                user=user,
                 provider='google'
             )
         except SocialAccount.DoesNotExist:
-            messages.error(request, 'Please connect your Google account first')
-            return redirect(reverse('socialaccount_connections'))
+            logger.error(f"No Google account connected for user {user.email}")
+            return False, f"No Google account connected for user {user.email}"
 
         # Check for valid token
         try:
             social_token = SocialToken.objects.get(
-                account__user=request.user,
+                account__user=user,
                 account__provider='google'
             )
         except SocialToken.DoesNotExist:
-            messages.error(request, 'Google authentication token not found. Please reconnect your Google account.')
-            return redirect(reverse('socialaccount_connections'))
+            logger.error(f"No valid token found for user {user.email}")
+            return False, f"No valid token found for user {user.email}"
 
-        # Create backup record
+        # Create backup record - temporarily remove initiated_by
         backup = PhotoBackup.objects.create(
-            user=request.user,
+            user=user,
             status='pending'
         )
 
@@ -157,34 +155,84 @@ def backup_photos(request):
                     break
 
             except HttpError as e:
-                error_message = f"Google API error: {str(e)}"
+                error_message = f"Google API error for user {user.email}: {str(e)}"
                 logger.error(error_message)
                 backup.status = 'failed'
                 backup.error_message = error_message
                 backup.save()
-                messages.error(request, error_message)
-                return redirect('/admin/people/photobackup/')
+                return False, error_message
 
         if photo_count > 0:
             backup.status = 'completed'
             backup.save()
-            messages.success(request, f'Successfully backed up {photo_count} photos!')
+            return True, f'Successfully backed up {photo_count} photos for user {user.email}'
         else:
             backup.status = 'failed'
             backup.error_message = 'No photos found to backup'
             backup.save()
-            messages.warning(request, 'No photos found to backup')
-
-        return redirect('/admin/people/photobackup/')
+            return False, f'No photos found to backup for user {user.email}'
 
     except Exception as e:
-        error_message = f"Backup failed: {str(e)}"
-        logger.error(f"Backup failed for user {request.user.email}: {str(e)}")
+        error_message = f"Backup failed for user {user.email}: {str(e)}"
+        logger.error(error_message)
 
         if backup:
             backup.status = 'failed'
             backup.error_message = error_message
             backup.save()
 
-        messages.error(request, error_message)
+        return False, error_message
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_backup_photos(request):
+    """View for superusers to backup photos for multiple users"""
+    if request.method == 'POST':
+        user_ids = request.POST.getlist('users')
+
+        if not user_ids:
+            messages.error(request, 'Please select at least one user')
+            return redirect('/admin/people/photobackup/')
+
+        success_count = 0
+        error_messages = []
+
+        for user_id in user_ids:
+            try:
+                user = User.objects.get(id=user_id)
+                success, message = process_user_backup(user, admin_user=request.user)
+
+                if success:
+                    success_count += 1
+                else:
+                    error_messages.append(message)
+
+            except User.DoesNotExist:
+                error_messages.append(f"User with ID {user_id} not found")
+
+        if success_count > 0:
+            messages.success(request, f'Successfully initiated backup for {success_count} users')
+
+        if error_messages:
+            messages.warning(request, 'Errors occurred during backup:\n' + '\n'.join(error_messages))
+
         return redirect('/admin/people/photobackup/')
+
+    # GET request - show user selection form
+    users = User.objects.filter(socialaccount__provider='google').distinct()
+    return render(request, 'admin/photo_backup_form.html', {'users': users})
+
+
+@login_required
+@user_passes_test(is_admin)
+def backup_photos(request):
+    """Original view for individual user backup"""
+    success, message = process_user_backup(request.user)
+
+    if success:
+        messages.success(request, message)
+    else:
+        messages.error(request, message)
+
+    return redirect('/admin/people/photobackup/')

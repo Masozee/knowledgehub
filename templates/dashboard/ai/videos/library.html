@@ -1,0 +1,196 @@
+{% extends 'dashboard/ai/base.html' %}
+
+{% block content %}
+<div class="nk-content">
+    <div class="container wide-xl">
+        <div class="nk-content-inner">
+            <div class="nk-content-body">
+                <div class="nk-content-wrap">
+                    <div class="nk-block-head nk-block-head-lg">
+                        <div class="nk-block-between-md g-4">
+                            <div class="nk-block-head-content">
+                                <h2 class="nk-block-title fw-normal">Video Library</h2>
+                                <div class="nk-block-des">
+                                    <p>Access and manage your AI-analyzed video content.</p>
+                                </div>
+                            </div>
+                            <div class="nk-block-head-content">
+                                <a href="{% url 'tools:video_upload' %}" class="btn btn-primary">
+                                    <em class="icon ni ni-upload me-2"></em>
+                                    <span>Upload New Video</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nk-block">
+                        {% if videos %}
+                        <div class="row g-gs">
+                            {% for video in videos %}
+                            <div class="col-sm-6 col-lg-4">
+                                <div class="card card-bordered h-100">
+                                    <div class="card-img-top">
+                                        <div class="aspect-16x9">
+                                            {% if video.source_url and 'youtube.com' in video.source_url %}
+                                            {% with video_id=video.source_url|cut:"https://www.youtube.com/watch?v="|cut:"&t" %}
+                                            <img src="https://img.youtube.com/vi/{{ video_id }}/0.jpg"
+                                                 alt="{{ video.title }}"
+                                                 class="object-cover w-100 h-100">
+                                            {% endwith %}
+                                            {% else %}
+                                            <img src="{{ video.video_file.url|default:'/static/images/video-placeholder.jpg' }}"
+                                                 alt="{{ video.title }}"
+                                                 class="object-cover w-100 h-100">
+                                            {% endif %}
+                                            <div class="video-badge">
+                                                <em class="icon ni ni-play-circle"></em>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-inner d-flex flex-column h-100">
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title mb-2">
+                                                {% if video.videonote %}
+                                                    <a href="{% url 'tools:video_notes' note_id=video.videonote.id %}">{{ video.title }}</a>
+                                                {% else %}
+                                                    <span>{{ video.title }}</span>
+                                                {% endif %}
+                                            </h5>
+                                            <div class="d-flex align-items-center text-soft">
+                                                <em class="icon ni ni-calendar me-1"></em>
+                                                <span>{{ video.created_at|date:"M d, Y" }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4">
+                                            {% if video.videonote %}
+                                                <a href="{% url 'tools:video_notes' note_id=video.videonote.id %}"
+                                                   class="btn btn-primary btn-block">
+                                                    <em class="icon ni ni-file-text me-1"></em>
+                                                    <span>View Notes</span>
+                                                </a>
+                                            {% else %}
+                                                <button class="btn btn-light btn-block" disabled>
+                                                    <em class="icon ni ni-loader me-1"></em>
+                                                    <span>Processing...</span>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="card card-bordered">
+                            <div class="card-inner">
+                                <div class="nk-help-plain text-center py-5">
+                                    <div class="icon-status icon-status-info icon-circle icon-circle-xxl mb-4">
+                                        <em class="icon ni ni-video-fill"></em>
+                                    </div>
+                                    <h5 class="mb-2">No Videos Yet</h5>
+                                    <p class="text-soft w-max-350px mx-auto mb-4">
+                                        Start by uploading your first video and let our AI analyze its content for you.
+                                    </p>
+                                    <a href="{% url 'tools:video_upload' %}" class="btn btn-primary btn-lg">
+                                        <em class="icon ni ni-upload me-2"></em>
+                                        <span>Upload Your First Video</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block css %}
+<style>
+.aspect-16x9 {
+    position: relative;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    overflow: hidden;
+    background: #f5f6fa;
+    border-radius: 4px 4px 0 0;
+}
+
+.aspect-16x9 img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.video-badge .icon {
+    font-size: 24px;
+}
+
+.card:hover .video-badge {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0 20px -5px rgba(0, 0, 0, 0.15);
+}
+
+.card-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+    height: 2.6em;
+}
+
+.btn-block {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6875rem 1.25rem;
+}
+
+.object-cover {
+    object-fit: cover;
+}
+
+.w-max-350px {
+    max-width: 350px;
+}
+</style>
+{% endblock %}

@@ -5,9 +5,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from .views import LogoutView
+from app.people import views as people_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('photo-backup/', people_views.admin_backup_photos, name='admin_photo_backup'),
     path('accounts/', include('allauth.urls')),  # This handles all auth URLs
     path('logout/', LogoutView.as_view(), name='logout'),
     path('', include('app.web.url')),

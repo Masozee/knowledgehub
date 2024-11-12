@@ -12,6 +12,11 @@ from django.urls import reverse
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericRelation
+from django.core.validators import FileExtensionValidator
+import yt_dlp
+from pydub import AudioSegment
+import tempfile
 
 User = get_user_model()
 
@@ -19,6 +24,10 @@ class DatabaseBackup(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     file_name = models.CharField(max_length=255)
     file_size = models.BigIntegerField()
+    database_type = models.CharField(max_length=20)
+    status = models.CharField(max_length=20, default='pending')
+    error_message = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Backup {self.file_name} created at {self.timestamp}"
@@ -100,6 +109,21 @@ class DatabaseBackup(models.Model):
                     if os.path.exists(psql_path):
                         return psql_path
         return None
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    message = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification for {self.user}: {self.message}"
 
 class AnalyticsVisitorData(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -192,18 +216,40 @@ class ImageContent(models.Model):
     image = models.ImageField(upload_to='ai_images/')
     caption = models.CharField(max_length=255, blank=True)
 
-class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
-    message = models.CharField(max_length=255)
+class VideoContent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    source_url = models.URLField(null=True, blank=True)
+    video_file = models.FileField(
+        upload_to='videos/',
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=['mp4', 'avi', 'mov'])]
+    )
+    duration = models.IntegerField(null=True, blank=True)  # Duration in seconds
     created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
+    messages = GenericRelation('Message')
+    transcript_txt_path = models.CharField(max_length=255, blank=True)
+    transcript_json_path = models.CharField(max_length=255, blank=True)
+    transcript_srt_path = models.CharField(max_length=255, blank=True)
+    transcript_vtt_path = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return self.title
+
+class VideoNote(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    video = models.OneToOneField(VideoContent, on_delete=models.CASCADE)
+    transcript = models.TextField()
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    summary = models.TextField(blank=True)
+    key_points = models.JSONField(default=list)
+    conclusion = models.TextField(blank=True, null=True)  # New field
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Notes for {self.video.title}"
 
     class Meta:
         ordering = ['-created_at']
-
-    def __str__(self):
-        return f"Notification for {self.user}: {self.message}"
-

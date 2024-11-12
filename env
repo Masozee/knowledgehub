@@ -1,0 +1,36 @@
+DB_USER=postgres
+DB_PASSWORD=TanahAbang1971
+DB_NAME=knowledgehub
+DB_HOST=localhost
+DB_PORT=5432
+SECRET_KEY=django-insecure-j5-byznswpau@4n57)oz7_v1tjm1mvc2#3@a0wlsb7gt%$v-2%
+DEBUG=False
+ENV=development
+
+
+MICROSOFT_AUTH_CLIENT_ID=fc2038be-cc42-4b60-8257-496e343b8550
+MICROSOFT_AUTH_CLIENT_SECRET=uJ78Q~CY3ru6iyf.qFQ9v98W0EmlXW~X_Cikfbun
+O365_SECRET_ID=06c671c2-becf-49f6-95f8-cb4e56b97e76
+
+ANTHROPIC_API_KEY=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
+OPENAI_API_KEY=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
+PERPLEXITY_API_KEY=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
+
+GOOGLE_CLIENT_ID=345346541837-dqookjqqlnj956ngnpqbep305tb8rpup.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+
+ACCOUNT_EMAIL_VERIFICATION=optional  # Change to 'mandatory' if you want email verification
+
+# Email settings (add these if you need email verification)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-specific-password
+
+# Security settings (for production)
+SECURE_SSL_REDIRECT=True  # Set to True in production
+SESSION_COOKIE_SECURE=True  # Set to True in production
+CSRF_COOKIE_SECURE=True  # Set to True in production
+SECURE_BROWSER_XSS_FILTER=True
+SECURE_CONTENT_TYPE_NOSNIFF=True

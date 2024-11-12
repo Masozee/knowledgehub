@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count
-from .models import Project, ProjectMember, Task
+from .models import *
 
 
 class ProjectMemberInline(admin.TabularInline):
@@ -35,6 +35,51 @@ class TaskInline(admin.TabularInline):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('assigned_to')
 
+class PublicationInline(admin.TabularInline):
+    model = Publication
+    extra = 0
+    fields = ('title', 'publication_type', 'publisher', 'publication_date', 'doi')
+    classes = ['collapse']
+    show_change_link = True
+    verbose_name = "Publication"
+    verbose_name_plural = "Publications"
+
+class ResearchDataInline(admin.TabularInline):
+    model = ResearchData
+    extra = 0
+    fields = ('title', 'data_type', 'collection_date', 'responsible_person')
+    classes = ['collapse']
+    show_change_link = True
+    verbose_name = "Research Data"
+    verbose_name_plural = "Research Data"
+
+class EventInline(admin.TabularInline):
+    model = Event
+    extra = 0
+    fields = ('title', 'event_type', 'date', 'location', 'expected_participants')
+    classes = ['collapse']
+    show_change_link = True
+    verbose_name = "Event"
+    verbose_name_plural = "Events"
+
+class ProgressInline(admin.TabularInline):
+    model = Progress
+    extra = 0
+    fields = ('title', 'progress_type', 'status', 'due_date', 'completion_date')
+    classes = ['collapse']
+    show_change_link = True
+    verbose_name = "Progress Item"
+    verbose_name_plural = "Progress Items"
+
+class ProjectGrantInline(admin.TabularInline):
+    model = ProjectGrant
+    extra = 0
+    fields = ('grant', 'status', 'submission_deadline')
+    classes = ['collapse']
+    show_change_link = True
+    verbose_name = "Project Grant"
+    verbose_name_plural = "Project Grants"
+
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
@@ -45,7 +90,15 @@ class ProjectAdmin(admin.ModelAdmin):
                      'team_members__email')
     readonly_fields = ('created_at', 'updated_at', 'progress_display')
     date_hierarchy = 'created_at'
-    inlines = [ProjectMemberInline, TaskInline]
+    nlines = [
+        ProjectMemberInline,
+        TaskInline,
+        PublicationInline,
+        ResearchDataInline,
+        EventInline,
+        ProgressInline,
+        ProjectGrantInline
+    ]
 
     fieldsets = (
         ('Project Information', {

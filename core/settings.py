@@ -1,6 +1,10 @@
 import os
 from decouple import config
 from pathlib import Path
+import ssl
+import certifi
+
+REQUESTS_VERIFY = certifi.where()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -128,6 +132,7 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 LOGIN_URL = '/accounts/login/'
+LOGOUT_URL = '/logout/'
 
 # AllAuth Settings
 ACCOUNT_EMAIL_REQUIRED = True
@@ -140,10 +145,10 @@ ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
-
+ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # Social Authentication Settings
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Since you want email verification
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'optional'  # Since you want email verification
 SOCIALACCOUNT_EMAIL_REQUIRED = True            # Email is required
 SOCIALACCOUNT_AUTO_SIGNUP = True              # Automatic signup for better UX
 SOCIALACCOUNT_LOGIN_ON_GET = True             # Smoother OAuth flow
@@ -322,3 +327,4 @@ CKEDITOR_5_CONFIGS = {
         }
     }
 }
+

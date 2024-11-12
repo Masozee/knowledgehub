@@ -162,12 +162,12 @@ class Writer(models.Model):
         return f"{self.person} - Writer"
 
 class PhotoBackup(models.Model):
-    STATUS_CHOICES = [
+    STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('processing', 'Processing'),
         ('completed', 'Completed'),
         ('failed', 'Failed'),
-    ]
+    )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -175,10 +175,14 @@ class PhotoBackup(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     total_photos = models.IntegerField(default=0)
     error_message = models.TextField(blank=True, null=True)
-    photos_limit = models.IntegerField(default=50, help_text=_("Number of photos to backup (0 for unlimited)"))
-
-    def __str__(self):
-        return f"Backup {self.id} - {self.user.email} - {self.status}"
+    photos_limit = models.IntegerField(default=0)
+    initiated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='initiated_backups'
+    )
 
     class Meta:
         ordering = ['-created_at']

@@ -1,0 +1,16 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <div class="module">
+        <h2>Select Users for Photo Backup</h2>
+        {% for user in users %}
+        <div>
+            <input type="checkbox" name="users" value="{{ user.id }}" id="user_{{ user.id }}">
+            <label for="user_{{ user.id }}">{{ user.email }}</label>
+        </div>
+        {% endfor %}
+        <input type="submit" value="Start Backup">
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,674 @@
+{% extends 'dashboard/base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="nk-content">
+    <div class="container wide-xl">
+        <div class="nk-content-inner">
+            <div class="nk-content-body">
+                <div class="nk-content-wrap">
+                    <!-- Header Section -->
+                    <div class="nk-block-head nk-block-head-lg">
+                        <div class="nk-block-between-md g-4">
+                            <div class="nk-block-head-content">
+                                <h2 class="nk-block-title fw-normal">{{ video_note.video.title }}</h2>
+                                <div class="nk-block-des">
+                                    <p>AI-generated transcript and analysis of your video content.</p>
+                                    <div class="video-meta mt-2">
+                                        <span class="badge bg-primary">Duration: {{ video_note.video.duration|format_duration }}</span>
+                                        <span class="badge bg-info">File Size: {{ video_note.video.video_file.size|format_filesize }}</span>
+                                        <span class="badge bg-success">Created: {{ video_note.video.created_at|date:"M d, Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Enhanced Download Options -->
+                            <div class="nk-block-head-content">
+                                <div class="btn-group">
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                            <em class="icon ni ni-download"></em> Download
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end">
+                                            {% if video_note.video.transcript_txt_path %}
+                                            <a class="dropdown-item" href="{{ video_note.video.transcript_txt_path }}" download>
+                                                <em class="icon ni ni-file-text"></em>
+                                                <span>Text Format (.txt)</span>
+                                            </a>
+                                            {% endif %}
+                                            {% if video_note.video.transcript_srt_path %}
+                                            <a class="dropdown-item" href="{{ video_note.video.transcript_srt_path }}" download>
+                                                <em class="icon ni ni-cc"></em>
+                                                <span>Subtitles (.srt)</span>
+                                            </a>
+                                            {% endif %}
+                                            {% if video_note.video.transcript_vtt_path %}
+                                            <a class="dropdown-item" href="{{ video_note.video.transcript_vtt_path }}" download>
+                                                <em class="icon ni ni-web"></em>
+                                                <span>Web Subtitles (.vtt)</span>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-outline-primary" onclick="shareVideo()">
+                                        <em class="icon ni ni-share"></em> Share
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nk-block">
+                        <div class="row g-gs">
+                            <!-- Video and Transcript Column -->
+                            <div class="col-lg-12">
+                                <div class="card card-bordered h-100">
+                                    <div class="card-inner">
+                                        {% if video_note.video.video_file %}
+                                        <div class="video-container mb-4">
+                                            <div class="ratio ratio-16x9">
+                                                <video id="videoPlayer" class="video-js vjs-default-skin" controls
+                                                       crossorigin="anonymous" preload="auto">
+                                                    <source src="{{ video_note.video.video_file.url }}" type="video/mp4">
+                                                    {% if video_note.video.transcript_vtt_path %}
+                                                    <track label="English" kind="subtitles" srclang="en"
+                                                           src="{{ video_note.video.transcript_vtt_path }}" default>
+                                                    {% endif %}
+                                                </video>
+                                            </div>
+                                            <div class="video-controls mt-2">
+                                                <div class="time-display" id="timeDisplay">00:00:00 / 00:00:00</div>
+                                                <div class="playback-speed">
+                                                    <select id="playbackSpeed" class="form-select form-select-sm"
+                                                            onchange="changePlaybackSpeed(this.value)">
+                                                        <option value="0.5">0.5x</option>
+                                                        <option value="1" selected>1x</option>
+                                                        <option value="1.5">1.5x</option>
+                                                        <option value="2">2x</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="nk-block mt-4">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5 class="title">Transcript</h5>
+                                                <div class="transcript-controls">
+                                                    <div class="input-group">
+                                                        <input type="text" id="transcriptSearch" 
+                                                               class="form-control form-control-sm" 
+                                                               placeholder="Search transcript..." 
+                                                               onkeyup="searchTranscript()">
+                                                        <span id="searchCount" class="search-count"></span>
+                                                        <button class="btn btn-sm btn-outline-primary" 
+                                                                onclick="toggleTimestamps()">
+                                                            <em class="icon ni ni-clock"></em>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-primary" 
+                                                                onclick="copyTranscript()">
+                                                            <em class="icon ni ni-copy"></em>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="transcript-container" id="transcriptContainer">
+                                                <div id="transcriptContent" class="transcript-text">
+                                                    {% if video_note.transcript %}
+                                                        {% for line in video_note.transcript.splitlines %}
+                                                            {% if line|strip %}
+                                                                <div class="transcript-segment">
+                                                                    {% if '[' in line and ']' in line %}
+                                                                        {% with timestamp=line|extract_timestamp text=line|extract_text %}
+                                                                            <span class="timestamp" data-time="{{ timestamp }}">
+                                                                                <strong>{{ timestamp }}</strong>:
+                                                                            </span>
+                                                                            <span class="segment-text">{{ text|format_transcript }}</span>
+                                                                        {% endwith %}
+                                                                    {% else %}
+                                                                        <span class="segment-text">{{ line|format_transcript }}</span>
+                                                                    {% endif %}
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <div class="transcript-segment">
+                                                            <span class="segment-text">No transcript available</span>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Analysis Column -->
+                            <div class="col-lg-12">
+                                <div class="card card-bordered h-100">
+                                    <div class="card-inner">
+                                        <!-- Summary Section with Expand/Collapse -->
+                                        <div class="nk-block">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5 class="title">Summary</h5>
+                                                <button class="btn btn-sm btn-icon btn-outline-primary"
+                                                        onclick="toggleSection('summary')">
+                                                    <em class="icon ni ni-chevron-down"></em>
+                                                </button>
+                                            </div>
+                                            <div id="summaryContent" class="chat-bubble">
+                                                <div class="chat-content">{{ video_note.summary }}</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="nk-divider divider md my-4"></div>
+
+                                        <!-- Enhanced Key Points Section -->
+                                        <div class="nk-block">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5 class="title">Key Points</h5>
+                                                <div class="key-points-filter">
+                                                    <select class="form-select form-select-sm"
+                                                            onchange="filterKeyPoints(this.value)">
+                                                        <option value="all">All Categories</option>
+                                                        {% for category in categories %}
+                                                        <option value="{{ category }}">{{ category }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="key-points-container">
+                                                {% for point in video_note.key_points %}
+                                                <div class="key-point"
+                                                     {% if point.timestamp %}data-time="{{ point.timestamp }}"{% endif %}
+                                                     {% if point.category %}data-category="{{ point.category }}"{% endif %}>
+                                                    {% if point.timestamp %}
+                                                    <span class="point-timestamp"
+                                                          onclick="seekVideo('{{ point.timestamp }}')">
+                                                        [{{ point.timestamp }}]
+                                                    </span>
+                                                    {% endif %}
+                                                    {% if point.category %}
+                                                    <span class="badge bg-lighter">{{ point.category }}</span>
+                                                    {% endif %}
+                                                    <span class="point-text">
+                                                        {% if point.text %}{{ point.text }}{% else %}{{ point }}{% endif %}
+                                                    </span>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+
+                                        {% if video_note.conclusion %}
+                                        <div class="nk-divider divider md my-4"></div>
+                                        <!-- Conclusion Section -->
+                                        <div class="nk-block">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5 class="title">Conclusion</h5>
+                                                <button class="btn btn-sm btn-icon btn-outline-primary"
+                                                        onclick="toggleSection('conclusion')">
+                                                    <em class="icon ni ni-chevron-down"></em>
+                                                </button>
+                                            </div>
+                                            <div id="conclusionContent" class="chat-bubble">
+                                                <div class="chat-content">{{ video_note.conclusion }}</div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block css %}
+<style>
+.transcript-segment {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    line-height: 1.5;
+}
+
+.transcript-segment:hover {
+    background-color: #f5f6fa;
+}
+
+.transcript-segment.active {
+    background-color: #e4e9f2;
+    border-left: 3px solid #854fff;
+}
+
+.timestamp {
+    color: #364a63;
+    cursor: pointer;
+    margin-right: 4px;
+    display: inline;
+}
+
+.timestamp:hover {
+    color: #854fff;
+}
+
+.segment-text {
+    display: inline;
+}
+
+/* Search highlight style */
+mark {
+    background-color: #fff3cd;
+    padding: 0.1rem 0.2rem;
+    border-radius: 2px;
+    color: #856404;
+}
+
+.search-count {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    color: #6e82a5;
+    font-size: 0.875rem;
+    background-color: #f5f6fa;
+    border: 1px solid #e5e9f2;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+}
+
+/* Prevent text selection on timestamp click */
+.timestamp strong {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+</style>
+{% endblock %}
+
+{% block js %}
+<script>
+// Global variables
+let timestampsVisible = true;
+let isAutoScrolling = false;
+
+// Initialize everything when the DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('videoPlayer');
+    const transcriptSegments = document.querySelectorAll('.transcript-segment');
+    const timeDisplay = document.getElementById('timeDisplay');
+
+    // Initialize video player if it exists
+    if (video) {
+        initializeVideoPlayer();
+        initializeVideoEvents(video);
+    }
+
+    // Initialize transcript features
+    initializeTranscriptInteraction();
+    initializeSearch();
+    restoreTimestampPreference();
+    initializeTooltips();
+});
+
+// Video Player Initialization
+function initializeVideoPlayer() {
+    const video = document.getElementById('videoPlayer');
+    
+    video.addEventListener('error', handleVideoError);
+    video.addEventListener('waiting', showLoadingIndicator);
+    video.addEventListener('canplay', () => Swal.close());
+}
+
+function initializeVideoEvents(video) {
+    // Update time display and transcript highlighting
+    video.addEventListener('timeupdate', function() {
+        updateTimeDisplay(this.currentTime, this.duration);
+        highlightCurrentTranscript(this.currentTime);
+    });
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+}
+
+// Video Error Handling
+function handleVideoError(e) {
+    console.error('Error loading video:', e);
+    Swal.fire({
+        icon: 'error',
+        title: 'Video Error',
+        text: 'There was an error loading the video. Please try again.',
+    });
+}
+
+function showLoadingIndicator() {
+    Swal.fire({
+        title: 'Loading...',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => Swal.showLoading()
+    });
+}
+
+// Transcript Interaction
+function initializeTranscriptInteraction() {
+    // Add click handlers to timestamps
+    document.querySelectorAll('.timestamp').forEach(timestamp => {
+        timestamp.addEventListener('click', handleTimestampClick);
+    });
+
+    // Add click handlers to transcript segments
+    document.querySelectorAll('.transcript-segment').forEach(segment => {
+        segment.addEventListener('click', handleSegmentClick);
+    });
+
+    // Add scroll listener to transcript container
+    const container = document.getElementById('transcriptContainer');
+    if (container) {
+        container.addEventListener('scroll', handleTranscriptScroll);
+    }
+}
+
+function handleTimestampClick() {
+    const time = this.getAttribute('data-time');
+    if (time) {
+        seekToTime(convertTimestampToSeconds(time));
+    }
+}
+
+function handleSegmentClick(e) {
+    if (e.target.classList.contains('timestamp')) return;
+    
+    const timestamp = this.querySelector('.timestamp');
+    if (timestamp) {
+        const time = timestamp.getAttribute('data-time');
+        if (time) {
+            seekToTime(convertTimestampToSeconds(time));
+        }
+    }
+}
+
+function handleTranscriptScroll() {
+    if (!isAutoScrolling) {
+        clearTimeout(this.scrollTimeout);
+        this.scrollTimeout = setTimeout(() => {
+            isAutoScrolling = false;
+        }, 1000);
+    }
+}
+
+// Transcript Highlighting
+function highlightCurrentTranscript(currentTime) {
+    const transcriptSegments = document.querySelectorAll('.transcript-segment');
+    let activeSegment = null;
+
+    transcriptSegments.forEach(segment => {
+        const timestamp = segment.querySelector('.timestamp');
+        if (!timestamp) return;
+
+        const time = convertTimestampToSeconds(timestamp.getAttribute('data-time'));
+        const nextSegment = segment.nextElementSibling;
+        const nextTime = nextSegment ? 
+            convertTimestampToSeconds(nextSegment.querySelector('.timestamp')?.getAttribute('data-time')) : 
+            Infinity;
+
+        if (currentTime >= time && currentTime < nextTime) {
+            if (!segment.classList.contains('active')) {
+                segment.classList.add('active');
+                activeSegment = segment;
+                scrollToActiveSegment(segment);
+            }
+        } else {
+            segment.classList.remove('active');
+        }
+    });
+
+    return activeSegment;
+}
+
+function scrollToActiveSegment(segment) {
+    if (!isAutoScrolling) {
+        isAutoScrolling = true;
+        segment.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+        setTimeout(() => {
+            isAutoScrolling = false;
+        }, 1000);
+    }
+}
+
+// Search Functionality
+function initializeSearch() {
+    const searchInput = document.getElementById('transcriptSearch');
+    if (!searchInput) return;
+
+    const searchCount = document.createElement('span');
+    searchCount.id = 'searchCount';
+    searchCount.className = 'search-count';
+    searchInput.parentNode.insertBefore(searchCount, searchInput.nextSibling);
+}
+
+function searchTranscript() {
+    const searchTerm = document.getElementById('transcriptSearch').value.toLowerCase();
+    const segments = document.querySelectorAll('.transcript-segment');
+    const searchCount = document.getElementById('searchCount');
+    let foundCount = 0;
+    
+    segments.forEach(segment => {
+        const text = segment.querySelector('.segment-text').textContent.toLowerCase();
+        const hasMatch = text.includes(searchTerm);
+        
+        // Reset previous highlighting
+        segment.querySelector('.segment-text').innerHTML = 
+            segment.querySelector('.segment-text').textContent;
+        
+        if (searchTerm && hasMatch) {
+            foundCount++;
+            segment.style.display = '';
+            const textContent = segment.querySelector('.segment-text').textContent;
+            segment.querySelector('.segment-text').innerHTML = 
+                textContent.replace(new RegExp(searchTerm, 'gi'), 
+                        match => `<mark>${match}</mark>`);
+        } else {
+            segment.style.display = searchTerm ? 'none' : '';
+        }
+    });
+
+    // Update search count
+    if (searchCount) {
+        searchCount.textContent = searchTerm ? `${foundCount} matches` : '';
+        searchCount.style.display = searchTerm ? 'inline-block' : 'none';
+    }
+}
+
+// Video Controls
+function handleKeyboardShortcuts(e) {
+    const video = document.getElementById('videoPlayer');
+    if (!video) return;
+
+    switch(e.key.toLowerCase()) {
+        case ' ':
+            e.preventDefault();
+            video.paused ? video.play() : video.pause();
+            break;
+        case 'arrowleft':
+            e.preventDefault();
+            seekToTime(video.currentTime - 5);
+            break;
+        case 'arrowright':
+            e.preventDefault();
+            seekToTime(video.currentTime + 5);
+            break;
+        case 'f':
+            e.preventDefault();
+            toggleFullscreen();
+            break;
+    }
+}
+
+function seekToTime(time) {
+    const video = document.getElementById('videoPlayer');
+    if (video) {
+        video.currentTime = Math.max(0, Math.min(time, video.duration));
+        video.play();
+    }
+}
+
+function toggleFullscreen() {
+    const video = document.getElementById('videoPlayer');
+    if (!video) return;
+
+    if (!document.fullscreenElement) {
+        video.requestFullscreen().catch(err => {
+            console.error('Error attempting to enable fullscreen:', err);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+function changePlaybackSpeed(speed) {
+    const video = document.getElementById('videoPlayer');
+    if (video) {
+        video.playbackRate = parseFloat(speed);
+    }
+}
+
+// Utility Functions
+function toggleTimestamps() {
+    const timestamps = document.querySelectorAll('.timestamp');
+    timestampsVisible = !timestampsVisible;
+
+    timestamps.forEach(timestamp => {
+        timestamp.style.display = timestampsVisible ? '' : 'none';
+    });
+
+    localStorage.setItem('timestampsVisible', timestampsVisible);
+}
+
+function copyTranscript() {
+    const transcriptText = Array.from(document.querySelectorAll('.segment-text'))
+        .map(segment => segment.textContent.trim())
+        .join('\n');
+
+    navigator.clipboard.writeText(transcriptText)
+        .then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Copied!',
+                text: 'Transcript copied to clipboard',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        })
+        .catch(err => {
+            console.error('Failed to copy transcript:', err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to copy transcript to clipboard'
+            });
+        });
+}
+
+function filterKeyPoints(category) {
+    const keyPoints = document.querySelectorAll('.key-point');
+    keyPoints.forEach(point => {
+        point.style.display = 
+            (category === 'all' || point.dataset.category === category) ? '' : 'none';
+    });
+}
+
+function toggleSection(sectionId) {
+    const content = document.getElementById(`${sectionId}Content`);
+    const button = content.previousElementSibling.querySelector('.btn');
+    
+    if (content && button) {
+        content.classList.toggle('section-collapsed');
+        const icon = button.querySelector('.icon');
+        icon.classList.toggle('ni-chevron-down');
+        icon.classList.toggle('ni-chevron-up');
+    }
+}
+
+function shareVideo() {
+    const videoUrl = window.location.href;
+
+    if (navigator.share) {
+        navigator.share({
+            title: document.title,
+            url: videoUrl
+        }).catch(console.error);
+    } else {
+        navigator.clipboard.writeText(videoUrl)
+            .then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Link Copied!',
+                    text: 'Video URL copied to clipboard',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            });
+    }
+}
+
+function convertTimestampToSeconds(timestamp) {
+    if (!timestamp) return 0;
+    
+    const parts = timestamp.split(':').map(Number);
+    if (parts.length === 3) {
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    } else if (parts.length === 2) {
+        return parts[0] * 60 + parts[1];
+    }
+    return 0;
+}
+
+function formatTimestamp(seconds) {
+    if (!seconds || isNaN(seconds)) return "00:00:00";
+
+    seconds = Math.floor(seconds);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+
+    return [hours, minutes, remainingSeconds]
+        .map(n => n.toString().padStart(2, '0'))
+        .join(':');
+}
+
+function updateTimeDisplay(currentTime, duration) {
+    const timeDisplay = document.getElementById('timeDisplay');
+    if (timeDisplay) {
+        timeDisplay.textContent = `${formatTimestamp(currentTime)} / ${formatTimestamp(duration)}`;
+    }
+}
+
+// Initialize tooltips
+function initializeTooltips() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+// Restore timestamp visibility preference
+function restoreTimestampPreference() {
+    const savedTimestampsVisible = localStorage.getItem('timestampsVisible');
+    if (savedTimestampsVisible !== null) {
+        timestampsVisible = savedTimestampsVisible === 'true';
+        if (!timestampsVisible) {
+            toggleTimestamps();
+        }
+    }
+}
+</script>
+{% endblock %}

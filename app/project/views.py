@@ -8,6 +8,9 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from app.project.models import *
 from django.shortcuts import get_object_or_404
+from django.db.models.functions import Lower, Substr, Concat
+from django.db.models import CharField, Count, Q, Prefetch
+from django.db import transaction
 
 
 class ProjectListView(LoginRequiredMixin, ListView):
@@ -17,10 +20,21 @@ class ProjectListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        # Removed team_count annotation since it's already a property
+        # Enhance prefetch_related to include user details and exclude project lead
         queryset = Project.objects.select_related('created_by') \
             .prefetch_related(
-            'team_members',
+            Prefetch(
+                'projectmember_set',
+                queryset=ProjectMember.objects.select_related('user')
+                .exclude(role='owner')
+                .annotate(
+                    initials=Concat(
+                        Substr('user__first_name', 1, 1),
+                        Substr('user__last_name', 1, 1),
+                        output_field=CharField()
+                    )
+                )
+            ),
             'progress_items'
         )
 
@@ -41,18 +55,36 @@ class ProjectListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Get user projects efficiently with a single query
         user_projects = Project.objects.filter(
             Q(created_by=self.request.user) |
             Q(team_members=self.request.user)
         ).distinct()
 
+        # Use conditional aggregation for status counts
+        project_stats = user_projects.aggregate(
+            total_projects=Count('id'),
+            active_projects=Count('id', filter=Q(status='active')),
+            completed_projects=Count('id', filter=Q(status='completed')),
+            on_hold_projects=Count('id', filter=Q(status='on_hold')),
+            cancelled_projects=Count('id', filter=Q(status='cancelled'))
+        )
+
+        # Get available team members (excluding the current user)
+        available_users = get_user_model().objects.exclude(
+            id=self.request.user.id
+        ).annotate(
+            initials=Concat(
+                Substr('first_name', 1, 1),
+                Substr('last_name', 1, 1),
+                output_field=CharField()
+            )
+        )
+
         context.update({
-            'total_projects': user_projects.count(),
-            'active_projects': user_projects.filter(status='active').count(),
-            'completed_projects': user_projects.filter(status='completed').count(),
-            'on_hold_projects': user_projects.filter(status='on_hold').count(),
-            'cancelled_projects': user_projects.filter(status='cancelled').count(),
-            'users': get_user_model().objects.exclude(id=self.request.user.id),
+            **project_stats,
+            'users': available_users,
             'member_roles': ProjectMember._meta.get_field('role').choices,
             'status_choices': Project._meta.get_field('status').choices,
         })
@@ -60,57 +92,58 @@ class ProjectListView(LoginRequiredMixin, ListView):
 
     def post(self, request, *args, **kwargs):
         try:
-            # Create project
-            project = Project.objects.create(
-                title=request.POST.get('title'),
-                description=request.POST.get('description'),
-                start_date=request.POST.get('start_date'),
-                end_date=request.POST.get('end_date'),
-                status=request.POST.get('status', 'planning'),
-                created_by=request.user
-            )
-
-            # Add team members with roles
-            team_members = request.POST.getlist('team_members')
-            if team_members:
-                for user_id in team_members:
-                    ProjectMember.objects.create(
-                        project=project,
-                        user_id=user_id,
-                        role='member'
-                    )
-
-            # Add creator as owner
-            ProjectMember.objects.create(
-                project=project,
-                user=request.user,
-                role='owner'
-            )
-
-            # Create initial progress item if specified
-            if request.POST.get('initial_milestone'):
-                Progress.objects.create(
-                    project=project,
-                    title=request.POST.get('initial_milestone'),
-                    progress_type='milestone',
-                    description=request.POST.get('milestone_description', ''),
-                    due_date=project.end_date,
-                    responsible_person=request.user,
-                    status=0
+            with transaction.atomic():
+                # Create project
+                project = Project.objects.create(
+                    title=request.POST.get('title'),
+                    description=request.POST.get('description'),
+                    start_date=request.POST.get('start_date'),
+                    end_date=request.POST.get('end_date'),
+                    status=request.POST.get('status', 'planning'),
+                    created_by=request.user
                 )
+
+                # Add team members with roles (excluding owner)
+                team_members = request.POST.getlist('team_members')
+                if team_members:
+                    ProjectMember.objects.bulk_create([
+                        ProjectMember(
+                            project=project,
+                            user_id=user_id,
+                            role='member'
+                        ) for user_id in team_members
+                    ])
+
+                # Add creator as owner
+                ProjectMember.objects.create(
+                    project=project,
+                    user=request.user,
+                    role='owner'
+                )
+
+                # Create initial progress item if specified
+                if request.POST.get('initial_milestone'):
+                    Progress.objects.create(
+                        project=project,
+                        title=request.POST.get('initial_milestone'),
+                        progress_type='milestone',
+                        description=request.POST.get('milestone_description', ''),
+                        due_date=project.end_date,
+                        responsible_person=request.user,
+                        status=0
+                    )
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
                     'id': project.uuid,
                 })
-            return redirect('projects:index')
+            return redirect('project:index')
 
         except Exception as e:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'error': str(e)}, status=400)
-            return redirect('projects:index')
-
+            return redirect('project:index')
 
 @require_POST
 def mark_project_complete(request, uuid):
@@ -260,13 +293,13 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
                 return JsonResponse({
                     'success': True,
                     'id': project.uuid,
-                    'redirect_url': reverse('projects:project_list')  # Updated URL name
+                    'redirect_url': reverse('project:project_list')  # Updated URL name
                 })
-            return redirect('projects:project_list')  # Updated URL name
+            return redirect('project:project_list')  # Updated URL name
         except Exception as e:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'error': str(e)}, status=400)
-            return redirect('projects:project_list')  # Updated URL name
+            return redirect('project:project_list')  # Updated URL name
 
     @require_POST
     def mark_project_complete(request, uuid):
@@ -275,7 +308,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
             return JsonResponse({
                 'success': True,
                 'message': 'Project marked as complete successfully',
-                'redirect_url': reverse('projects:project_list')  # Added redirect URL
+                'redirect_url': reverse('project:project_list')  # Added redirect URL
             })
         except Exception as e:
             return JsonResponse({
