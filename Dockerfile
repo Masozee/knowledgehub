@@ -1,36 +1,47 @@
-# Dockerfile
-FROM python:3.11-slim-bullseye
+# Use Python 3.11 slim image
+FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DEBIAN_FRONTEND=noninteractive
+    POETRY_VERSION=1.6.1 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_VIRTUALENVS_CREATE=false \
+    DJANGO_SETTINGS_MODULE=core.settings.development
 
 # Set work directory
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    gettext \
-    postgresql-client \
-    curl \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
+        libpq-dev \
+        git \
+        ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python -
+
+# Add Poetry to PATH
+ENV PATH="${POETRY_HOME}/bin:${PATH}"
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock* ./
+
+# Install dependencies
+RUN poetry install --no-root --no-interaction
 
 # Copy project
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p /app/staticfiles /app/media
+# Create necessary directories and log file with proper permissions
+RUN mkdir -p /app/staticfiles /app/mediafiles /app/logs \
+    && touch /app/logs/django.log \
+    && chmod -R 777 /app/logs \
+    && chmod 666 /app/logs/django.log
 
-# Create and switch to non-root user
-RUN useradd -m django_user && chown -R django_user:django_user /app
-USER django_user
-
-# Default to WSGI, can be overridden in docker-compose
-CMD ["granian", "--interface", "wsgi", "--host", "0.0.0.0", "--port", "8000", "core.wsgi:application"]
+# Collect static files
+RUN python manage.py collectstatic --noinput || true
