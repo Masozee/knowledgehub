@@ -5,13 +5,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: granian --interface wsgi --host 0.0.0.0 --port 8000 core.wsgi:application --workers 4
+    command: granian --interface wsgi --host 0.0.0.0 --port 8008 core.wsgi:application --workers 4 --keep-alive 75
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/mediafiles
     ports:
-      - "8000:8000"
+      - "8008:8008"
     env_file:
       - .env
     environment:
