@@ -51,7 +51,9 @@ INSTALLED_APPS = [
     'app.project',
 
     #third party apps
-    'microsoft_auth',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
     'django_extensions',
     'import_export',
     'django_ckeditor_5',
