@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'app.tools',
     'app.config',
     'app.project',
+    'app.finance',
 
     #third party apps
     'allauth',
