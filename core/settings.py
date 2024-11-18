@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'microsoft_auth',
     'django_extensions',
     'import_export',
     'django_ckeditor_5',
