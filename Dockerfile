@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     POETRY_VERSION=1.6.1 \
     POETRY_HOME="/opt/poetry" \
     POETRY_VIRTUALENVS_CREATE=false \
-    DJANGO_SETTINGS_MODULE=core.settings.development
+    DJANGO_SETTINGS_MODULE=core.settings
 
 # Set work directory
 WORKDIR /app

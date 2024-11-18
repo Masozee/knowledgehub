@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: granian --interface wsgi --host 0.0.0.0 --port 8008 core.wsgi:application --workers 4 --keep-alive 75
+    command: granian --interface wsgi --host 0.0.0.0 --port 8008 core.wsgi:application --workers 4
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -17,7 +17,7 @@ services:
     environment:
       - DB_HOST=db
       - REDIS_URL=redis://redis:6379/0
-      - DJANGO_SETTINGS_MODULE=core.settings.development
+      - DJANGO_SETTINGS_MODULE=core.settings
     depends_on:
       - db
       - redis
