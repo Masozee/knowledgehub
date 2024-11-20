@@ -1,323 +1,142 @@
 {% extends 'dashboard/ai/base.html' %}
 {% load custom_filters %}
 
-                {% block content %}
-                <!-- content @s -->
-                    <div class="container wide-xl">
-                                
-                                    <div class="nk-block-head nk-block-head-md">
-                                        <div class="nk-block-between">
-                                            <div class="nk-block-head-content">
-                                                <h3 class="nk-block-title page-title">Chats</h3>
-                                            </div><!-- .nk-block-head-content -->
-                                            <div class="nk-block-head-content">
-                                                <a href="{% url 'web:index' %}" class="back-to"><em class="icon ni ni-arrow-left"></em><span><span class="d-none d-sm-inline-block">Back to</span> Dashboard</span></a>
-                                            </div><!-- .nk-block-head-content -->
-                                        </div><!-- .nk-block-between -->
-                                    </div><!-- .nk-block-head -->
-                                    <div class="nk-chat nk-chat-boxed">
-                                        <div class="nk-chat-aside">
-                                            <div class="nk-chat-aside-head d-flex justify-content-between align-items-center">
-                                                <div class="nk-chat-aside-user">
-                                                    <div class="dropdown">
-                                                        <a href="#" class="dropdown-toggle dropdown-indicator" data-bs-toggle="dropdown">
-                                                            <div class="title">AI Provider: <span id="current-provider">Claude</span></div>
-                                                        </a>
-                                                        <div class="dropdown-menu">
-                                                            <ul class="link-list-opt no-bdr">
-                                                                {% for service in ai_services %}
-                                                                <li><a href="#" class="dropdown-item" data-provider="{{ service }}"><span>{{ service|title }}</span></a></li>
-                                                                {% endfor %}
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <ul class="nk-chat-aside-tools g-2">
-                                                    <li>
-                                                        <a href="{% url 'tools:new_conversation' %}" class="btn btn-round btn-icon btn-light new-chat-btn">
-                                                            <em class="icon ni ni-plus-circle-fill"></em>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div class="nk-chat-aside-body" data-simplebar>
-                                                <div class="nk-chat-aside-search">
-                                                    <div class="form-group">
-                                                        <div class="form-control-wrap">
-                                                            <div class="form-icon form-icon-left">
-                                                                <em class="icon ni ni-search"></em>
-                                                            </div>
-                                                            <input type="text" class="form-control form-round" id="default-03" placeholder="Search by name">
-                                                        </div>
-                                                    </div>
-                                                </div><!-- .nk-chat-aside-search -->
-
-                                                <div class="nk-chat-list">
-                                                    <h6 class="title overline-title-alt">Messages</h6>
-                                                    <ul class="chat-list">
-                                                        {% for chat in all_chats %}
-                                                        <li class="chat-item {% if chat.id == current_chat.id %}active{% endif %}">
-                                                            <a class="chat-link chat-open" href="{{ chat.full_path }}">
-                                                                <div class="chat-info">
-                                                                    <div class="chat-from">
-                                                                        <div class="name">{{ chat.title }}<br>
-                                                                        <small class="time">{{ chat.created_at|date:'d M, Y' }}</small></div>
-                                                                    </div>
-                                                                </div>
-                                                            </a>
-                                                            <div class="chat-actions">
-                                                                <div class="dropdown">
-                                                                    <a href="#" class="btn btn-icon btn-sm btn-trigger dropdown-toggle" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
-                                                                    <div class="dropdown-menu dropdown-menu-end">
-                                                                        <ul class="link-list-opt no-bdr">
-                                                                            <li><a href="#" data-action="clear-conversation" data-id="{{ chat.id }}">Clear</a></li>
-                                                                            <li><a href="#" data-action="delete-conversation" data-id="{{ chat.id }}">Delete</a></li>
-                                                                        </ul>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </li><!-- .chat-item -->
-                                                        {% endfor %}
-                                                    </ul><!-- .chat-list -->
-                                                </div><!-- .nk-chat-list -->
-                                            </div>
-                                        </div><!-- .nk-chat-aside -->
-                                        <div class="nk-chat-body profile-shown">
-                                            <div class="nk-chat-head">
-                                                <ul class="nk-chat-head-info">
-                                                    <li class="nk-chat-body-close">
-                                                        <a href="#" class="btn btn-icon btn-trigger nk-chat-hide ms-n1"><em class="icon ni ni-arrow-left"></em></a>
-                                                    </li>
-                                                    <li class="nk-chat-head-user">
-                                                        <div class="user-card">
-                                                            <div class="user-info">
-                                                                <div class="lead-text">AI Chat</div>
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                </ul>
-
-                                                <div class="nk-chat-head-search">
-                                                    <div class="form-group">
-                                                        <div class="form-control-wrap">
-                                                            <div class="form-icon form-icon-left">
-                                                                <em class="icon ni ni-search"></em>
-                                                            </div>
-                                                            <input type="text" class="form-control form-round" id="chat-search" placeholder="Search in Conversation">
-                                                        </div>
-                                                    </div>
-                                                </div><!-- .nk-chat-head-search -->
-                                            </div><!-- .nk-chat-head -->
-                                            <div class="nk-chat-panel" data-simplebar>
-                                                {% for message in messages %}
-                                                    <div class="chat {% if message.is_user %}is-me{% else %} {% endif %}">
-                                                        <div class="chat-content">
-                                                            {% if message.is_user %}
-                                                                <div class="chat-bubbles">
-                                                                    <div class="chat-bubble">
-                                                                        {% if message.content_type.model == 'textcontent' %}
-                                                                            <div class="chat-msg">{{ message.content_object.text|linebreaks|safe }}</div>
-                                                                        {% elif message.content_type.model == 'codecontent' %}
-                                                                            <div class="code-block">
-                                                                                <button class="copy-btn">Copy</button>
-                                                                                <pre><code class="language-{{ message.content_object.language }} chat-code">{{ message.content_object.code }}</code></pre>
-                                                                            </div>
-                                                                        {% elif message.content_type.model == 'imagecontent' %}
-                                                                            <img src="{{ message.content_object.image.url }}" alt="{{ message.content_object.caption }}" style="max-width: 100%; height: auto;">
-                                                                        {% endif %}
-                                                                    </div>
-                                                                </div>
-                                                            {% else %}
-                                                                {% if message.content_type.model == 'textcontent' %}
-                                                                    <div class="chat-msg">{{ message.content_object.text|linebreaks|safe }}</div>
-                                                                {% elif message.content_type.model == 'codecontent' %}
-                                                                    <div class="code-block full-width">
-                                                                        <button class="copy-btn">Copy</button>
-                                                                        <pre><code class="language-{{ message.content_object.language }} chat-code">{{ message.content_object.code }}</code></pre>
-                                                                    </div>
-                                                                {% elif message.content_type.model == 'imagecontent' %}
-                                                                    <img src="{{ message.content_object.image.url }}" alt="{{ message.content_object.caption }}" style="max-width: 100%; height: auto;">
-                                                                {% endif %}
-                                                            {% endif %}
-                                                            <ul class="chat-meta">
-                                                                <li>{% if message.is_user %}You{% else %}{{ message.ai_service|default:"AI"|title }}{% endif %}</li>
-                                                                <li>{{ message.timestamp|date:"d M, Y H:i" }}</li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                            <div class="nk-chat-editor">
-                                                <div class="nk-chat-editor-upload  ms-n1">
-                                                    <a href="#" class="btn btn-sm btn-icon btn-trigger text-primary toggle-opt" data-target="chat-upload"><em class="icon ni ni-plus-circle-fill"></em></a>
-                                                    <div class="chat-upload-option" data-content="chat-upload">
-                                                        <ul class="">
-                                                            <li><a href="#"><em class="icon ni ni-img-fill"></em></a></li>
-                                                            <li><a href="#"><em class="icon ni ni-file-doc"></em></a></li>
-
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                <div class="nk-chat-editor-form">
-                                                    <div class="form-control-wrap">
-                                                        <textarea class="form-control form-control-simple no-resize" rows="1" id="default-textarea" placeholder="Type your message..."></textarea>
-                                                    </div>
-                                                </div>
-                                                <ul class="nk-chat-editor-tools g-2">
-                                                    <li>
-                                                        <a href="#" class="btn btn-sm btn-icon btn-trigger text-primary"></a>
-                                                    </li>
-                                                    <li>
-                                                        <button class="btn btn-round btn-primary btn-icon" id="send-message"><em class="icon ni ni-send-alt"></em></button>
-                                                    </li>
-                                                </ul>
-                                            </div><!-- .nk-chat-editor -->
-                                        </div><!-- .nk-chat-body -->
-                                    </div><!-- .nk-chat -->
-                                </div>
-                                <!-- Your existing footer code here -->
-                                <div class="nk-footer">
-                                    <div class="container wide-xl">
-                                        <div class="nk-footer-wrap g-2">
-                                            <div class="nk-footer-copyright"> &copy; 2023 DashLite. Template by <a href="https://softnio.com" target="_blank">Softnio</a>
-                                            </div>
-                                            <div class="nk-footer-links">
-                                                <ul class="nav nav-sm">
-                                                    <li class="nav-item dropup">
-                                                        <a href="#" class="dropdown-toggle dropdown-indicator has-indicator nav-link text-base" data-bs-toggle="dropdown" data-offset="0,10"><span>English</span></a>
-                                                        <div class="dropdown-menu dropdown-menu-sm dropdown-menu-end">
-                                                            <ul class="language-list">
-                                                                <li>
-                                                                    <a href="#" class="language-item">
-                                                                        <span class="language-name">English</span>
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#" class="language-item">
-                                                                        <span class="language-name">Español</span>
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#" class="language-item">
-                                                                        <span class="language-name">Français</span>
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#" class="language-item">
-                                                                        <span class="language-name">Türkçe</span>
-                                                                    </a>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </li>
-                                                    <li class="nav-item">
-                                                        <a data-bs-toggle="modal" href="#region" class="nav-link"><em class="icon ni ni-globe"></em><span class="ms-1">Select Region</span></a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
+{% block content %}
+<div class="container wide-xl">
+    <!-- Header section remains same -->
+    <div class="nk-block-head nk-block-head-md">
+        <div class="nk-block-between">
+            <div class="nk-block-head-content">
+                <h3 class="nk-block-title page-title">Chats</h3>
+            </div>
+            <div class="nk-block-head-content">
+                <div class="dropdown">
+                    <a href="#" class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
+                        <div class="title">AI Provider: <span id="current-provider">Claude</span></div>
+                    </a>
+                    <div class="dropdown-menu">
+                        <ul class="link-list-opt no-bdr">
+                            {% for service in ai_services %}
+                            <li><a href="#" class="dropdown-item" data-provider="{{ service }}"><span>{{ service|title }}</span></a></li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
-                <!-- content @e -->
-                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <div class="nk-chat">
+        <div class="nk-chat-body">
+            <div class="nk-chat-panel" data-simplebar>
+                {% for message in messages %}
+                    <div class="chat {% if message.is_user %}is-me{% else %}is-you{% endif %}">
+                        <div class="chat-content">
+                            {% if not message.is_user %}
+                            <div class="ai-icon">
+                                {% if message.ai_service == 'claude' %}
+                                    🎭
+                                {% elif message.ai_service == 'gpt' %}
+                                    🤖
+                                {% elif message.ai_service == 'gemini' %}
+                                    ♊
+                                {% else %}
+                                    🤖
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <div class="chat-bubbles">
+                                <div class="chat-bubble {% if message.is_user %}user-bubble{% else %}ai-bubble{% endif %}">
+                                    {% if message.content_type.model == 'textcontent' %}
+                                        <div class="chat-msg">
+                                            {{ message.content_object.text|linebreaks|safe }}
+                                            {% if not message.is_user %}
+                                            <button class="copy-btn" onclick="copyText(this)">
+                                                <em class="icon ni ni-copy"></em>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    {% elif message.content_type.model == 'codecontent' %}
+                                        <div class="code-block">
+                                            <div class="code-header">
+                                                <span class="code-language">{{ message.content_object.language }}</span>
+                                                <button class="copy-btn" onclick="copyCode(this)">
+                                                    <em class="icon ni ni-copy"></em>
+                                                </button>
+                                            </div>
+                                            <pre><code class="language-{{ message.content_object.language }}">{{ message.content_object.code }}</code></pre>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <ul class="chat-meta">
+                                <li>{% if message.is_user %}You{% else %}{{ message.ai_service|default:"AI"|title }}{% endif %}</li>
+                                <li>{{ message.timestamp|date:"d M, Y H:i" }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="nk-chat-editor">
+                <div class="nk-chat-editor-upload ms-n1">
+                    <a href="#" class="btn btn-sm btn-icon btn-trigger text-primary toggle-opt" data-target="chat-upload"><em class="icon ni ni-plus-circle-fill"></em></a>
+                    <div class="chat-upload-option" data-content="chat-upload">
+                        <ul class="">
+                            <li><a href="#"><em class="icon ni ni-img-fill"></em></a></li>
+                            <li><a href="#"><em class="icon ni ni-file-doc"></em></a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="nk-chat-editor-form">
+                    <div class="form-control-wrap">
+                        <textarea class="form-control form-control-simple no-resize" rows="1" id="default-textarea" placeholder="Type your message..."></textarea>
+                    </div>
+                </div>
+                <ul class="nk-chat-editor-tools g-2">
+                    <li>
+                        <button class="btn btn-round btn-primary btn-icon" id="send-message"><em class="icon ni ni-send-alt"></em></button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
 {% block css %}
-<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+{{ block.super }}
 <style>
-    /* General chat styles */
-    .chat {
-        margin-bottom: 20px;
+    .ai-icon {
+        font-size: 24px;
+        margin-right: 8px;
+        display: inline-block;
+        vertical-align: top;
     }
-    .chat-content {
+    
+    .chat.is-you .chat-content {
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .chat-bubble {
+        background-color: #f5f6fa;
+        border-radius: 12px;
+        padding: 12px 15px;
         max-width: 80%;
     }
-    .chat-meta {
-        list-style-type: none;
-        padding: 0;
-        margin: 5px 0 0;
-        font-size: 0.8em;
-        color: #6c757d;
-    }
-    .chat-meta li {
-        display: inline;
-        margin-right: 10px;
-    }
-
-    /* User message styles */
-    .chat.is-you {
-        text-align: right;
-    }
-    .chat.is-you .chat-content {
-        display: inline-block;
-    }
-    .chat.is-you .chat-bubble {
-        background-color: #28a745;
+    
+    .chat.is-me .chat-bubble {
+        background-color: #798bff;
         color: white;
-        border-radius: 15px;
-        padding: 10px 15px;
-        display: inline-block;
-        max-width: 100%;
     }
-
-    /* AI message styles */
-    .chat.is-me .chat-content {
-        display: block;
-        max-width: 100%;
-    }
-    .chat.is-me .chat-msg {
-        color: #eaeaea;
-    }
-
-    /* Code block styles */
-    .code-block {
-        position: relative;
-        background-color: #1e1e1e;
-        border-radius: 6px;
-        margin: 10px 0;
-        padding: 40px 15px 15px;
-        overflow: hidden;
-    }
-    .code-block.full-width {
-        width: 100%;
-    }
-    .copy-btn {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        background-color: transparent;
-        border: 1px solid #6c757d;
-        color: #6c757d;
-        border-radius: 3px;
-        padding: 3px 8px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    .copy-btn:hover {
-        background-color: #6c757d;
-        color: #fff;
-    }
-    .chat-code {
-        color: #d4d4d4;
-        font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
-        font-size: 14px;
-        line-height: 1.5;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-    }
-
-    /* Ensure images don't overflow */
-    img {
-        max-width: 100%;
-        height: auto;
+    
+    .nk-chat {
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
     }
 </style>
 {% endblock %}
+
 
 {% block js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>

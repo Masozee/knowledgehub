@@ -177,6 +177,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'APP': {
             'client_id': config('MICROSOFT_AUTH_CLIENT_ID'),
             'secret': config('MICROSOFT_AUTH_CLIENT_SECRET'),
+
         },
         'SCOPE': [
             'User.Read',
