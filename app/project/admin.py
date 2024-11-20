@@ -90,7 +90,7 @@ class ProjectAdmin(admin.ModelAdmin):
                      'team_members__email')
     readonly_fields = ('created_at', 'updated_at', 'progress_display')
     date_hierarchy = 'created_at'
-    nlines = [
+    inlines = [
         ProjectMemberInline,
         TaskInline,
         PublicationInline,
@@ -106,7 +106,8 @@ class ProjectAdmin(admin.ModelAdmin):
                 'title',
                 'description',
                 'status',
-                'progress_display'
+                'progress_display',
+                'public_project'
             )
         }),
         ('Dates', {

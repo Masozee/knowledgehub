@@ -1,0 +1,180 @@
+{% extends 'dashboard/project/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="nk-block nk-block-lg">
+    <div class="card card-bordered">
+        <div class="card-inner">
+            <div class="card-head">
+                <h5 class="card-title">Create New Project</h5>
+            </div>
+            <form method="post" class="gy-3" id="create-project-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <!-- Basic Information -->
+                <div class="card-title-group">
+                    <div class="card-title">
+                        <h6 class="title">Basic Information</h6>
+                    </div>
+                </div>
+                <div class="row g-3 align-center">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.title.id_for_label }}">Project Title</label>
+                            <div class="form-control-wrap">
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                <div class="alert alert-danger">{{ form.title.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.description.id_for_label }}">Description</label>
+                            <div class="form-control-wrap">
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <div class="alert alert-danger">{{ form.description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label class="form-label">Project Type</label>
+                            <div class="form-control-wrap">
+                                <ul class="custom-control-group">
+                                    <li>
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" class="custom-control-input" name="{{ form.public_project.name }}" 
+                                                   id="public-project" value="1" {% if form.public_project.value %}checked{% endif %}>
+                                            <label class="custom-control-label" for="public-project">Public Project</label>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" class="custom-control-input" name="{{ form.public_project.name }}" 
+                                                   id="private-project" value="0" {% if not form.public_project.value %}checked{% endif %}>
+                                            <label class="custom-control-label" for="private-project">Private Project</label>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Members -->
+                <div class="card-title-group mt-4">
+                    <div class="card-title">
+                        <h6 class="title">Team Members</h6>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label">Select Team Members</label>
+                            <ul class="row g-3">
+                                {% for user in form.team_members.field.queryset %}
+                                <li class="col-sm-6">
+                                    <div class="custom-control custom-control-sm custom-control-pro custom-checkbox custom-control-full">
+                                        <input type="checkbox" 
+                                               class="custom-control-input" 
+                                               name="{{ form.team_members.name }}" 
+                                               id="team-{{ user.id }}" 
+                                               value="{{ user.id }}"
+                                               {% if user.id|stringformat:"s" in form.team_members.value|default_if_none:'' %}checked{% endif %}>
+                                        <label class="custom-control-label" for="team-{{ user.id }}">
+                                            <span class="user-card">
+                                                <span class="user-avatar sq bg-primary">
+                                                    <span>{{ user.get_full_name|slice:":2"|upper }}</span>
+                                                </span>
+                                                <span class="user-info">
+                                                    <span class="lead-text">{{ user.get_full_name }}</span>
+                                                    <span class="sub-text">{{ user.email }}</span>
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Details -->
+                <div class="card-title-group mt-4">
+                    <div class="card-title">
+                        <h6 class="title">Project Details</h6>
+                    </div>
+                </div>
+                <div class="row g-3">
+                   
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.project_lead.id_for_label }}">Project Lead</label>
+                            <div class="form-control-wrap">
+                                {{ form.project_lead }}
+                                {% if form.project_lead.errors %}
+                                <div class="alert alert-danger">{{ form.project_lead.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.start_date.id_for_label }}">Start Date</label>
+                            <div class="form-control-wrap">
+                                {{ form.start_date }}
+                                {% if form.start_date.errors %}
+                                <div class="alert alert-danger">{{ form.start_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.end_date.id_for_label }}">End Date</label>
+                            <div class="form-control-wrap">
+                                {{ form.end_date }}
+                                {% if form.end_date.errors %}
+                                <div class="alert alert-danger">{{ form.end_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.tags.id_for_label }}">Tags</label>
+                            <div class="form-control-wrap">
+                                {{ form.tags }}
+                                {% if form.tags.errors %}
+                                <div class="alert alert-danger">{{ form.tags.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+
+                <!-- Form Actions -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-lg btn-primary my-5">Create Project</button>
+                            <a href="{% url 'project:project_list' %}" class="btn btn-lg btn-light">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

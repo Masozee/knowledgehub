@@ -1,5 +1,6 @@
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
@@ -11,6 +12,10 @@ from django.shortcuts import get_object_or_404
 from django.db.models.functions import Lower, Substr, Concat
 from django.db.models import CharField, Count, Q, Prefetch
 from django.db import transaction
+from django.contrib import messages
+from formtools.wizard.views import SessionWizardView
+from django.urls import reverse_lazy
+from .forms import *
 
 
 class ProjectListView(LoginRequiredMixin, ListView):
@@ -315,3 +320,22 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
                 'success': False,
                 'error': str(e)
             }, status=500)
+
+class ProjectCreateView(LoginRequiredMixin, CreateView):
+    template_name = 'dashboard/project/create.html'
+    form_class = ProjectCreateForm
+    success_url = reverse_lazy('project:project_list')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Project created successfully!')
+        return response
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Please correct the errors below.')
+        return super().form_invalid(form)

@@ -44,6 +44,7 @@ class Project(models.Model):
         through='ProjectMember',
         related_name='project_memberships'
     )
+    public_project = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at']
