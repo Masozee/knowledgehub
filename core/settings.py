@@ -117,6 +117,7 @@ DATABASE_ROUTERS = [
 
 # Authentication and User Settings
 AUTH_USER_MODEL = 'people.CustomUser'
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},

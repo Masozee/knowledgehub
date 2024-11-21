@@ -232,7 +232,7 @@ class ProjectMemberAdmin(admin.ModelAdmin):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ('title', 'project_link', 'status', 'assigned_to', 'due_date')
+    list_display = ('title', 'project_link', 'status', 'assigned_to', 'due_date', 'code')
     list_filter = ('status', 'project', 'assigned_to')
     search_fields = ('title', 'description', 'project__title')
     autocomplete_fields = ['project', 'assigned_to']

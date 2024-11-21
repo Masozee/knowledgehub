@@ -8,5 +8,6 @@ urlpatterns = [
     path('', views.ProjectListView.as_view(), name='project_list'),
     path('create/', views.ProjectCreateView.as_view(), name='project_create'),
     path('<uuid:uuid>/', views.ProjectDetailView.as_view(), name='project_detail'),
+    path('<uuid:uuid>/edit/', views.ProjectUpdateView.as_view(), name='project_edit'),
     path('complete/<uuid:uuid>/', views.mark_project_complete, name='complete'),
 ]

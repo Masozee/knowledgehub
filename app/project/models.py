@@ -1,3 +1,5 @@
+import random
+import string
 import uuid
 from django.db import models
 from django.conf import settings
@@ -10,6 +12,24 @@ import uuid
 from django.urls import reverse
 from django.db.models import Count, Q
 
+
+class TaskManager(models.Manager):
+    def generate_unique_code(self):
+        """Generate a unique 6-character code with mix of numbers and letters"""
+        length = 6
+        while True:
+            # Generate 3 letters and 3 numbers
+            letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+            numbers = ''.join(random.choices(string.digits, k=3))
+
+            # Combine and shuffle them
+            code = list(letters + numbers)
+            random.shuffle(code)
+            code = ''.join(code)
+
+            # Check if this code already exists
+            if not self.filter(code=code).exists():
+                return code
 
 class Project(models.Model):
     uuid = models.UUIDField(
@@ -121,8 +141,26 @@ class Project(models.Model):
         """Check if project is active"""
         return self.status == 'active'
 
+    @property
+    def days_left(self):
+        """Calculate days left until project end date"""
+        from datetime import date
+
+        if self.end_date:
+            today = date.today()
+            days_remaining = (self.end_date - today).days
+            return max(days_remaining, 0)  # Return 0 if end date has passed
+        return None
+
 class Task(models.Model):
     """Task model for project tasks"""
+    code = models.CharField(
+        max_length=6,
+        unique=True,
+        blank=True,
+        editable=False,
+        help_text="Unique 6-character task identifier"
+    )
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -146,12 +184,57 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     due_date = models.DateField(null=True, blank=True)
+    objects = TaskManager()
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
-        return self.title
+        return f"[{self.code}] {self.title}"
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = Task.objects.generate_unique_code()
+        super().save(*args, **kwargs)
+
+    @property
+    def is_completed(self):
+        """Check if task is completed"""
+        return self.status == 'completed'
+
+    @property
+    def is_overdue(self):
+        """Check if task is overdue"""
+        if self.due_date and not self.is_completed:
+            return self.due_date < timezone.now().date()
+        return False
+
+    @property
+    def status_color(self):
+        """Return Bootstrap color class based on status"""
+        color_map = {
+            'pending': 'secondary',
+            'in_progress': 'primary',
+            'completed': 'success',
+            'cancelled': 'danger',
+        }
+        return color_map.get(self.status, 'secondary')
+
+    def get_absolute_url(self):
+        """Get the absolute URL for the task"""
+        return reverse('project:task_detail', kwargs={
+            'project_uuid': self.project.uuid,
+            'code': self.code
+        })
+
+    def can_user_edit(self, user):
+        """Check if user can edit this task"""
+        if user == self.project.created_by:
+            return True
+        return self.project.projectmember_set.filter(
+            user=user,
+            role__in=['owner', 'manager']
+        ).exists()
 
 class ProjectMember(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)

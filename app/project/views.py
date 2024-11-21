@@ -1,6 +1,6 @@
 from django.views.generic import ListView, DetailView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
@@ -16,6 +16,7 @@ from django.contrib import messages
 from formtools.wizard.views import SessionWizardView
 from django.urls import reverse_lazy
 from .forms import *
+from django.core.exceptions import PermissionDenied
 
 
 class ProjectListView(LoginRequiredMixin, ListView):
@@ -90,8 +91,6 @@ class ProjectListView(LoginRequiredMixin, ListView):
         context.update({
             **project_stats,
             'users': available_users,
-            'member_roles': ProjectMember._meta.get_field('role').choices,
-            'status_choices': Project._meta.get_field('status').choices,
         })
         return context
 
@@ -104,7 +103,6 @@ class ProjectListView(LoginRequiredMixin, ListView):
                     description=request.POST.get('description'),
                     start_date=request.POST.get('start_date'),
                     end_date=request.POST.get('end_date'),
-                    status=request.POST.get('status', 'planning'),
                     created_by=request.user
                 )
 
@@ -148,7 +146,7 @@ class ProjectListView(LoginRequiredMixin, ListView):
         except Exception as e:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'success': False, 'error': str(e)}, status=400)
-            return redirect('project:index')
+            return redirect('project:project_list')
 
 @require_POST
 def mark_project_complete(request, uuid):
@@ -339,3 +337,16 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
     def form_invalid(self, form):
         messages.error(self.request, 'Please correct the errors below.')
         return super().form_invalid(form)
+
+
+class ProjectUpdateView(LoginRequiredMixin, UpdateView):
+    model = Project
+    template_name = 'dashboard/project/create.html'
+    form_class = ProjectUpdateForm
+    slug_field = 'uuid'
+    slug_url_kwarg = 'uuid'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs

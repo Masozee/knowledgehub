@@ -35,7 +35,7 @@
                                 </div>
                             </li>
                             <li class="nk-block-tools-opt d-none d-sm-block">
-                                <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreateProject">
+                                <a href="{% url 'project:project_create' %}" class="btn btn-primary">
                                     <em class="icon ni ni-plus"></em>
                                     <span>Add Project</span>
                                 </a>
@@ -143,12 +143,12 @@
                                             {% elif days_left <= 5 %}
                                                 <span class="badge badge-dim bg-warning">
                                                     <em class="icon ni ni-clock"></em>
-                                                    <span>{{ days_left }} Days Left</span>
+                                                    <span>{{ project.days_left }} Days Left</span>
                                                 </span>
                                             {% else %}
                                                 <span class="badge badge-dim bg-light text-gray">
                                                     <em class="icon ni ni-calendar"></em>
-                                                    <span>{{ days_left }} Days Left</span>
+                                                    <span>{{ project.days_left }} Days Left</span>
                                                 </span>
                                             {% endif %}
                                         {% endwith %}
@@ -170,7 +170,7 @@
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a href="#" class="edit-project" data-id="{{ project.uuid }}">
+                                                            <a href="{% url 'project:project_edit' project.uuid %}" class="edit-project">
                                                                 <em class="icon ni ni-edit"></em>
                                                                 <span>Edit Project</span>
                                                             </a>
