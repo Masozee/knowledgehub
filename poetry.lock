@@ -726,6 +726,20 @@ files = [
 Django = ">=3.2"
 
 [[package]]
+name = "django-formtools"
+version = "2.5.1"
+description = "A set of high-level abstractions for Django forms"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "django-formtools-2.5.1.tar.gz", hash = "sha256:47cb34552c6efca088863d693284d04fc36eaaf350eb21e1a1d935e0df523c93"},
+    {file = "django_formtools-2.5.1-py3-none-any.whl", hash = "sha256:bce9b64eda52cc1eef6961cc649cf75aacd1a707c2fff08d6c3efcbc8e7e761a"},
+]
+
+[package.dependencies]
+Django = ">=3.2"
+
+[[package]]
 name = "django-import-export"
 version = "4.1.1"
 description = "Django application and library for importing and exporting data with included admin integration."
@@ -3750,4 +3764,4 @@ test = ["pytest (>=8.1,<9.0)", "pytest-rerunfailures (>=14.0,<15.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "972d0bcdc9044a01ff897b26f4b40e21ae4f75449bfb01a9c124e12ec9c0e51d"
+content-hash = "66083d27407f5210e56e0b4b89eb9d23c898c7c9fb8a91b066fae53d28fdf39e"

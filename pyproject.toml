@@ -130,6 +130,7 @@ django-debug-toolbar = "^4.4.6"
 django-redis = "^5.4.0"
 django-axes = "^7.0.0"
 django-storages = "^1.14.4"
+django-formtools = "^2.5.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.0"
