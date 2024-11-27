@@ -217,6 +217,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Security Settings
+# Add these settings
+CSRF_TRUSTED_ORIGINS = ['https://tools.csis.or.id']
+CSRF_USE_SESSIONS = True  # More secure than cookie-based CSRF
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
