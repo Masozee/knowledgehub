@@ -39,6 +39,7 @@ PROJECT_APPS = [
     'app.config',
     'app.project',
     'app.finance',
+    'app.web',
 ]
 
 THIRD_PARTY_APPS = [
