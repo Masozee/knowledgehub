@@ -1,6 +1,6 @@
 from django.db import models
 from app.config.models import Option as OptionConfig
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
 
 from app.people.models import CustomUser
 

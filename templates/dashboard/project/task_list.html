@@ -1,0 +1,137 @@
+{% extends 'dashboard/project/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="nk-content-body">
+    <div class="nk-content-wrap">
+        <div class="nk-block-head nk-block-head-sm">
+            <div class="nk-block-between">
+                <div class="nk-block-head-content">
+                    <h3 class="nk-block-title page-title">Tasks - {{ project.title }}</h3>
+                    <div class="nk-block-des text-soft">
+                        <p>You have {{ task_stats.total }} tasks in total</p>
+                    </div>
+                </div>
+                <div class="nk-block-head-content">
+                    <div class="toggle-wrap nk-block-tools-toggle">
+                        <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu"><em class="icon ni ni-menu-alt-r"></em></a>
+                        <div class="toggle-expand-content" data-content="pageMenu">
+                            <ul class="nk-block-tools g-3">
+                                {% if can_create %}
+                                <li><a href="{% url 'project:task_create' project.uuid %}" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>Add Task</span></a></li>
+                                {% endif %}
+                                <li><a href="{% url 'project:task_kanban' project.uuid %}" class="btn btn-white btn-outline-light"><em class="icon ni ni-cards"></em><span>Kanban View</span></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="nk-block">
+            <div class="card">
+                <div class="card-inner-group">
+                    <div class="card-inner p-0">
+                        <div class="nk-tb-list nk-tb-ulist">
+                            <div class="nk-tb-item nk-tb-head">
+                                <div class="nk-tb-col"><span class="sub-text">Task</span></div>
+                                <div class="nk-tb-col tb-col-md"><span class="sub-text">Status</span></div>
+                                <div class="nk-tb-col tb-col-md"><span class="sub-text">Assigned To</span></div>
+                                <div class="nk-tb-col tb-col-md"><span class="sub-text">Due Date</span></div>
+                                <div class="nk-tb-col nk-tb-col-tools text-end">
+                                    <div class="dropdown">
+                                        <a href="#" class="btn btn-xs btn-outline-light btn-icon dropdown-toggle" data-bs-toggle="dropdown"><em class="icon ni ni-plus"></em></a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% for task in tasks %}
+                            <div class="nk-tb-item">
+                                <div class="nk-tb-col">
+                                    <a href="{{ task.get_absolute_url }}">
+                                        <span class="fw-bold">[{{ task.code }}] {{ task.title }}</span>
+                                    </a>
+                                </div>
+                                <div class="nk-tb-col tb-col-md">
+                                    <span class="badge badge-dim bg-{{ task.status_color }}">{{ task.get_status_display }}</span>
+                                </div>
+                                <div class="nk-tb-col tb-col-md">
+                                    {% if task.assigned_to %}
+                                        <div class="user-card">
+                                            <div class="user-avatar xs bg-primary">
+                                                {% if task.assigned_to.profile.avatar %}
+                                                    <img src="{{ task.assigned_to.profile.avatar.url }}" alt="">
+                                                {% else %}
+                                                    <span>{{ task.assigned_to.get_initials }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="user-name">
+                                                <span class="tb-lead">{{ task.assigned_to.get_full_name }}</span>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-soft">Unassigned</span>
+                                    {% endif %}
+                                </div>
+                                <div class="nk-tb-col tb-col-md">
+                                    {% if task.due_date %}
+                                        <span class="badge badge-dim bg-warning">
+                                            <em class="icon ni ni-clock"></em>
+                                            <span>{{ task.due_date|date:"Y-m-d" }}</span>
+                                        </span>
+                                    {% else %}
+                                        <span class="text-soft">No due date</span>
+                                    {% endif %}
+                                </div>
+                                <div class="nk-tb-col nk-tb-col-tools">
+                                    <ul class="nk-tb-actions gx-1">
+                                        {% if task.can_user_edit %}
+                                        <li>
+                                            <div class="drodown">
+                                                <a href="#" class="dropdown-toggle btn btn-icon btn-trigger" data-bs-toggle="dropdown"><em class="icon ni ni-more-h"></em></a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <ul class="link-list-opt no-bdr">
+                                                        <li><a href="{% url 'project:task_update' project.uuid task.code %}"><em class="icon ni ni-edit"></em><span>Edit Task</span></a></li>
+                                                        <li><a href="{% url 'project:task_delete' project.uuid task.code %}" class="text-danger"><em class="icon ni ni-trash"></em><span>Delete Task</span></a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="nk-tb-item">
+                                <div class="nk-tb-col text-center" colspan="5">
+                                    <span class="text-soft">No tasks found</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if is_paginated %}
+                    <div class="card-inner">
+                        <div class="nk-block-between-md g-3">
+                            <div class="g">
+                                <ul class="pagination justify-content-center justify-content-md-start">
+                                    {% if page_obj.has_previous %}
+                                    <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                    {% endif %}
+                                    
+                                    <li class="page-item active"><a class="page-link" href="#">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a></li>
+                                    
+                                    {% if page_obj.has_next %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

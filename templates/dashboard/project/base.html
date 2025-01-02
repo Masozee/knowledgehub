@@ -15,6 +15,8 @@
     <!-- StyleSheets  -->
     <link rel="stylesheet" href="{% static 'dashboard/assets/css/dashlite.css' %}">
     <link id="skin-default" rel="stylesheet" href="{% static 'dashboard/assets/css/theme.css' %}">
+    {% block css %}
+    {% endblock %}
 </head>
 
 <body class="nk-body bg-white npc-subscription has-aside ">
@@ -207,34 +209,47 @@
                                                 <span class="nk-menu-text">Dashboard</span>
                                             </a>
                                         </li>
+                                        {% if project %}
                                         <li class="nk-menu-item">
-                                            <a href="#" class="nk-menu-link">
+                                            <a href="{% url 'project:task_kanban' project_uuid=project.uuid %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-file-text"></em></span>
                                                 <span class="nk-menu-text">Progress</span>
                                             </a>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="html/subscription/payments.html" class="nk-menu-link">
+                                            <a href="{%  url 'project:funding' project_uuid=project.uuid %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-report-profit"></em></span>
-                                                <span class="nk-menu-text">Budget</span>
+                                                <span class="nk-menu-text">Funds</span>
                                             </a>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="html/subscription/team-access.html" class="nk-menu-link">
+                                            <a href="{%  url 'project:team' project_uuid=project.uuid %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-users"></em></span>
-                                                <span class="nk-menu-text">Manage Team</span>
+                                                <span class="nk-menu-text">Manage Teams</span>
                                             </a>
                                         </li>
+                                    {% else %}
+                                        {{ empty }}
+                                    {% endif %}
+
+
+
                                         <li class="nk-menu-item">
                                             <a href="html/subscription/downloads.html" class="nk-menu-link">
-                                                <span class="nk-menu-icon"><em class="icon ni ni-download-cloud"></em></span>
-                                                <span class="nk-menu-text">Download</span>
+                                                <span class="nk-menu-icon"><em class="icon ni ni-bulb"></em></span>
+                                                <span class="nk-menu-text">Outreach</span>
                                             </a>
                                         </li>
                                         <li class="nk-menu-item">
                                             <a href="html/subscription/profile-setting.html" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-puzzle"></em></span>
                                                 <span class="nk-menu-text">Research Sources</span>
+                                            </a>
+                                        </li>
+                                        <li class="nk-menu-item">
+                                            <a href="html/subscription/profile-setting.html" class="nk-menu-link">
+                                                <span class="nk-menu-icon"><em class="icon ni ni-opt-dot-alt"></em></span>
+                                                <span class="nk-menu-text">Settings</span>
                                             </a>
                                         </li>
                                         <li class="nk-menu-heading">

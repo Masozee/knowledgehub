@@ -20,6 +20,7 @@ SITE_ID = 1
 
 # Application definition
 DJANGO_APPS = [
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -52,6 +53,11 @@ THIRD_PARTY_APPS = [
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.microsoft',
     'formtools',
+    'model_utils',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'taggit',
+    'ckeditor',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
@@ -64,7 +70,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware'
+    'allauth.account.middleware.AccountMiddleware',
+    'core.middleware.CurrentUserMiddleware'
 ]
 
 # Authentication Settings
@@ -247,12 +254,23 @@ LOGGING = {
             'class': 'core.logging.SQLiteLogHandler',
             'formatter': 'verbose',
         },
+        'null': {
+            'class': 'logging.NullHandler',
+        },
     },
     'loggers': {
-        '': {
+        '': {  # Root logger
             'handlers': ['db_log'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+        'django.db.backends.schema': {  # Add this to handle admin log issues
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'django.contrib.admin': {  # Add this to handle admin-specific logs
+            'handlers': ['null'],
+            'propagate': False,
         },
     },
 }
@@ -339,3 +357,7 @@ CKEDITOR_5_CONFIGS = {
         }
     }
 }
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+
+CRISPY_TEMPLATE_PACK = "bootstrap5"

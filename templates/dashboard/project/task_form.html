@@ -1,0 +1,79 @@
+{% extends 'dashboard/project/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="nk-content-body">
+    <div class="nk-content-wrap">
+        <div class="nk-block-head nk-block-head-sm">
+            <div class="nk-block-between">
+                <div class="nk-block-head-content">
+                    <h3 class="nk-block-title page-title">{{ action }} Task</h3>
+                    <div class="nk-block-des text-soft">
+                        <p>Project: {{ project.title }}</p>
+                    </div>
+                </div>
+                <div class="nk-block-head-content">
+                    <div class="toggle-wrap nk-block-tools-toggle">
+                        <div class="toggle-expand-content" data-content="pageMenu">
+                            <ul class="nk-block-tools g-3">
+                                <li>
+                                    <a href="{% url 'project:task_kanban' project.uuid %}" class="btn btn-outline-light">
+                                        <em class="icon ni ni-arrow-left"></em>
+                                        <span>Back to Kanban</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="nk-block">
+            <div class="card">
+                <div class="card-inner">
+                    <form method="post" class="form-validate">
+                        {% csrf_token %}
+                        <div class="row g-gs">
+                            <div class="col-md-6">
+                                {{ form.title|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.status|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.assigned_to|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.due_date|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.description|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-lg btn-primary">{{ action }} Task</button>
+                                    <a href="{% url 'project:task_kanban' project.uuid %}" class="btn btn-lg btn-light">Cancel</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(document).ready(function() {
+            // Initialize datepicker for due date
+            $('.date-picker').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                todayHighlight: true
+            });
+        });
+    </script>
+{% endblock %}

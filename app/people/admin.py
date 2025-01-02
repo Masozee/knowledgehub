@@ -4,6 +4,9 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.html import format_html
 from .models import *
 from .forms import CustomUserCreationForm, CustomUserChangeForm
+from django.contrib.admin.models import LogEntry
+
+#LogEntry.objects.all().delete()
 
 class RelationshipInline(admin.TabularInline):
     model = Relationship
@@ -15,34 +18,39 @@ class StaffInline(admin.StackedInline):
     model = Staff
     can_delete = False
 
-class SpeakerInline(admin.StackedInline):
-    model = Speaker
-    can_delete = False
 
-class WriterInline(admin.StackedInline):
-    model = Writer
-    can_delete = False
+
+
+class CustomUserChangeForm(UserChangeForm):
+    class Meta(UserChangeForm.Meta):
+        model = CustomUser
+
 
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = CustomUser
-    list_display = ('email', 'user_type', 'is_staff', 'is_active',)
-    list_filter = ('email', 'user_type', 'is_staff', 'is_active',)
+
+    list_display = ('username', 'email', 'is_active', 'is_staff')
+    list_filter = ('email', 'user_type',)
+
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'user_type')}),
         ('OAuth info', {'fields': ('oauth_provider', 'oauth_token', 'oauth_refresh_token', 'oauth_token_expiry')}),
-        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Permissions', {'fields': ('is_superuser', 'groups', 'user_permissions')}),
     )
+
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'user_type', 'password1', 'password2', 'is_staff', 'is_active')}
-        ),
+            'fields': ('email', 'user_type', 'password1', 'password2')}
+         ),
     )
+
     search_fields = ('email',)
     ordering = ('email',)
+
 
 admin.site.register(CustomUser, CustomUserAdmin)
 
@@ -51,7 +59,7 @@ class PersonAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'email', 'phone_number', 'user_type', 'display_image')
     list_filter = ('user__user_type',)
     search_fields = ('first_name', 'last_name', 'email', 'phone_number')
-    inlines = [RelationshipInline, StaffInline, SpeakerInline, WriterInline]
+    inlines = [RelationshipInline, StaffInline]
 
     def full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}"
@@ -79,17 +87,11 @@ class StaffAdmin(admin.ModelAdmin):
     list_filter = ('department', 'hire_date')
     search_fields = ('person__first_name', 'person__last_name', 'employee_id', 'position')
 
-@admin.register(Speaker)
-class SpeakerAdmin(admin.ModelAdmin):
-    list_display = ('person', 'areas_of_expertise', 'speaking_fee')
-    search_fields = ('person__first_name', 'person__last_name', 'areas_of_expertise')
-
-@admin.register(Writer)
-class WriterAdmin(admin.ModelAdmin):
-    list_display = ('person', 'genre')
-    list_filter = ('genre',)
-    search_fields = ('person__first_name', 'person__last_name', 'genre', 'publications')
-
+@admin.register(Organization)
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = ('name','phone','address')
+    list_filter = ('name',)
+    search_fields = ('name',)
 # Unregister the Group model from admin.
 # If you want to use it, you'll need to define a custom GroupAdmin
 from django.contrib.auth.models import Group

@@ -1,0 +1,107 @@
+{% extends 'dashboard/project/base.html' %}
+
+{% block content %}
+<div class="nk-content-body">
+    <div class="nk-content-wrap">
+        <div class="nk-block-head nk-block-head-lg">
+            <div class="nk-block-head-sub"><span>Team Members</span></div>
+            <div class="nk-block-between-md g-4">
+                <div class="nk-block-head-content">
+                    <h2 class="nk-block-title fw-normal">{{ project.title }} Team</h2>
+                    <div class="nk-block-des">
+                        <p>Manage team members and their roles for this project.</p>
+                    </div>
+                </div>
+                <div class="nk-block-head-content">
+                    <ul class="nk-block-tools gx-3">
+                        <li><a href="{% url 'project:invite_member' project.uuid %}" class="btn btn-primary">Invite New Member</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="nk-block">
+            <div class="card card-bordered">
+                <table class="table table-member">
+                    <thead class="tb-member-head table-light">
+                        <tr class="tb-member-item">
+                            <th class="tb-member-info"><span class="overline-title">Team Member</span></th>
+                            <th class="tb-member-type tb-col-sm"><span class="overline-title">Permission</span></th>
+                            <th class="tb-member-role tb-col-md"><span class="overline-title">Role</span></th>
+                            <th class="tb-member-action"><span class="overline-title">Action</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="tb-member-body">
+                        {% for member in project.projectmember_set.all %}
+                        <tr class="tb-member-item">
+                            <td class="tb-member-info">
+                                <div class="user-card">
+                                    <div class="user-avatar bg-{{ member.user.get_avatar_color }}">
+                                        <span>{{ member.user.get_initials }}</span>
+                                    </div>
+                                    <div class="user-info">
+                                        <span class="lead-text">{{ member.user.get_full_name }}</span>
+                                        <span class="sub-text">{{ member.user.email }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="tb-member-type tb-col-sm">
+                                <span>{{ member.get_role_display }}</span>
+                            </td>
+                            <td class="tb-member-role tb-col-md">
+                                {% if request.user == project.created_by or perms.project.change_projectmember %}
+                                <div class="form">
+                                    <select class="form-select js-select2" data-search="off" data-ui="clean" 
+                                            hx-post="{% url 'project:update_member_role' project.uuid member.id %}"
+                                            hx-trigger="change">
+                                        {% for role in available_roles %}
+                                        <option value="{{ role.0 }}" {% if role.0 == member.role %}selected{% endif %}>
+                                            {{ role.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% else %}
+                                <span>{{ member.get_role_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="tb-member-action">
+                                {% if request.user == project.created_by or perms.project.change_projectmember %}
+                                <div class="d-none d-md-inline">
+                                    <a href="#" class="link link-sm"><span>Edit</span></a>
+                                    <a href="" class="link link-sm link-danger" 
+                                       hx-post="{% url 'project:remove_member' project.uuid member.id %}"
+                                       hx-confirm="Are you sure you want to remove this member?"><span>Remove</span></a>
+                                </div>
+                                <div class="dropdown d-md-none">
+                                    <a class="dropdown-toggle btn btn-icon btn-trigger" data-bs-toggle="dropdown"><em class="icon ni ni-more-v"></em></a>
+                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-xs">
+                                        <ul class="link-list-plain no-bdr">
+                                            <li><a href="#" class="link link-sm">Edit</a></li>
+                                            <li><a href="" class="link link-sm link-danger" 
+                                                  hx-post="{% url 'project:remove_member' project.uuid member.id %}"
+                                                  hx-confirm="Are you sure?">Remove</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.body.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.detail.target.classList.contains('js-select2')) {
+        $(evt.detail.target).select2();
+    }
+});
+</script>
+{% endblock %}

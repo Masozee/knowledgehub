@@ -1,0 +1,36 @@
+{% extends 'dashboard/project/base.html' %}
+
+{% block content %}
+<div class="nk-content-body">
+    <div class="nk-content-wrap">
+        <div class="nk-block-head nk-block-head-sm">
+            <div class="nk-block-between">
+                <div class="nk-block-head-content">
+                    <h3 class="nk-block-title page-title">Delete Task</h3>
+                    <div class="nk-block-des text-soft">
+                        <p>Project: {{ project.title }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="nk-block">
+            <div class="card">
+                <div class="card-inner">
+                    <div class="alert alert-danger">
+                        <p>Are you sure you want to delete this task?</p>
+                        <p><strong>[{{ task.code }}] {{ task.title }}</strong></p>
+                        <p class="text-soft">This action cannot be undone.</p>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                            <a href="{% url 'project:task_kanban' project.uuid %}" class="btn btn-light">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

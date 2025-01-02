@@ -1,23 +1,44 @@
-from django.views.generic import ListView, DetailView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.contrib.auth import get_user_model
-from django.db.models import Count, Q, Prefetch
-from django.shortcuts import redirect
-from django.utils import timezone
-from app.project.models import *
-from django.shortcuts import get_object_or_404
+from django.views.generic import ListView, DetailView, TemplateView, CreateView, UpdateView, DeleteView, View
+
 from django.db.models.functions import Lower, Substr, Concat
 from django.db.models import CharField, Count, Q, Prefetch
 from django.db import transaction
-from django.contrib import messages
-from formtools.wizard.views import SessionWizardView
-from django.urls import reverse_lazy
-from .forms import *
-from django.core.exceptions import PermissionDenied
 
+from .forms import *
+
+from django.views.decorators.csrf import csrf_protect
+import json
+from app.project.mixins import *
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.shortcuts import get_object_or_404
+from django.urls import reverse_lazy
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils.decorators import method_decorator
+from .models import Project, ProjectMember
+
+
+class PermissionMixin:
+    """
+    Custom mixin to handle permission checks for project-related views
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        # Get the project first
+        project_uuid = self.kwargs.get('project_uuid')
+        self.project = get_object_or_404(Project, uuid=project_uuid)
+
+        # Check if user has permission
+        if not self.has_permission():
+            messages.error(request, "You don't have permission to perform this action.")
+            return redirect('project:project_detail', uuid=project_uuid)
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def has_permission(self):
+        # Default implementation - override in specific views
+        return True
 
 class ProjectListView(LoginRequiredMixin, ListView):
     model = Project
@@ -203,16 +224,21 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     slug_url_kwarg = 'uuid'
 
     def get_queryset(self):
-        return Project.objects.select_related('created_by') \
-            .prefetch_related(
+        return Project.objects.select_related('created_by').prefetch_related(
             'team_members',
             'progress_items',
-            'publications',
+
             'research_data',
-            'events',
-            'project_grants',
-            'project_grants__grant',
-            'project_grants__reports'
+
+            Prefetch(
+                'activity_logs',
+                queryset=ActivityLog.objects.select_related(
+                    'actor',
+                    'content_type'
+                ).filter(
+                    actor__isnull=False
+                ).order_by('-timestamp')
+            )
         )
 
     def get_context_data(self, **kwargs):
@@ -220,13 +246,26 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         project = self.object
 
         # Get team members with roles
-        team_members = ProjectMember.objects.filter(project=project) \
-            .select_related('user') \
-            .order_by('role', 'joined_at')
+        team_members = ProjectMember.objects.filter(
+            project=project
+        ).select_related('user').order_by('role', 'joined_at')
+
+        # Get activity logs for this project and related objects
+        activity_logs = project.activity_logs.select_related(
+            'actor',
+            'content_type'
+        ).order_by('-timestamp')[:10]
+
+        # Group activities by date for better organization
+        grouped_activities = {}
+        for log in activity_logs:
+            date = log.timestamp.date()
+            if date not in grouped_activities:
+                grouped_activities[date] = []
+            grouped_activities[date].append(log)
 
         # Get progress statistics
-        progress_stats = Progress.objects.filter(project=project) \
-            .aggregate(
+        progress_stats = Progress.objects.filter(project=project).aggregate(
             total=Count('id'),
             completed=Count('id', filter=Q(status=100)),
             in_progress=Count('id', filter=Q(status__gt=0, status__lt=100)),
@@ -235,89 +274,26 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
 
         # Calculate overall progress
         total_progress = progress_stats['total']
-        if total_progress > 0:
-            overall_progress = (progress_stats['completed'] / total_progress) * 100
-        else:
-            overall_progress = 0
-
-        # Get publication statistics
-        publication_stats = {
-            'total': project.publications.count(),
-            'by_type': project.publications.values('publication_type') \
-                .annotate(count=Count('id'))
-        }
-
-        # Get research data statistics
-        research_data_stats = {
-            'total': project.research_data.count(),
-            'by_type': project.research_data.values('data_type') \
-                .annotate(count=Count('id'))
-        }
-
-        # Get event statistics
-        event_stats = {
-            'total': project.events.count(),
-            'upcoming': project.events.filter(date__gt=timezone.now()).count(),
-            'by_type': project.events.values('event_type') \
-                .annotate(count=Count('id'))
-        }
-
-        # Get grant information
-        grants = project.project_grants.select_related('grant') \
-            .prefetch_related('reports') \
-            .order_by('-grant__start_date')
+        overall_progress = (progress_stats['completed'] / total_progress * 100) if total_progress > 0 else 0
 
         context.update({
             'team_members': team_members,
-            'progress_items': project.progress_items.order_by('due_date'),
+            'progress_items': project.progress_items.all(),
             'progress_stats': progress_stats,
             'overall_progress': overall_progress,
-            'publications': project.publications.order_by('-publication_date'),
-            'publication_stats': publication_stats,
-            'research_data': project.research_data.order_by('-collection_date'),
-            'research_data_stats': research_data_stats,
-            'events': project.events.order_by('date'),
-            'event_stats': event_stats,
-            'grants': grants,
+
+            'research_data': project.research_data.all(),
+
             'member_roles': ProjectMember._meta.get_field('role').choices,
             'progress_types': Progress.PROGRESS_TYPES,
-            'can_edit': self.request.user == project.created_by or \
-                        project.projectmember_set.filter(
-                            user=self.request.user,
-                            role__in=['owner', 'manager']
-                        ).exists()
+            'activity_logs': activity_logs,
+            'grouped_activities': grouped_activities,
+            'can_edit': self.request.user == project.created_by or project.projectmember_set.filter(
+                user=self.request.user,
+                role__in=['owner', 'manager']
+            ).exists()
         })
         return context
-
-    def post(self, request, *args, **kwargs):
-        try:
-            # Project creation code...
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'id': project.uuid,
-                    'redirect_url': reverse('project:project_list')  # Updated URL name
-                })
-            return redirect('project:project_list')  # Updated URL name
-        except Exception as e:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'error': str(e)}, status=400)
-            return redirect('project:project_list')  # Updated URL name
-
-    @require_POST
-    def mark_project_complete(request, uuid):
-        try:
-            # Project completion code...
-            return JsonResponse({
-                'success': True,
-                'message': 'Project marked as complete successfully',
-                'redirect_url': reverse('project:project_list')  # Added redirect URL
-            })
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            }, status=500)
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
     template_name = 'dashboard/project/create.html'
@@ -325,17 +301,27 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('project:project_list')
 
     def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
+        try:
+            kwargs = super().get_form_kwargs()
+            kwargs['user'] = self.request.user
+            return kwargs
+        except Exception as e:
+            messages.error(self.request, f'Form kwargs error: {str(e)}')
+            return kwargs
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, 'Project created successfully!')
-        return response
+        try:
+            response = super().form_valid(form)
+            messages.success(self.request, 'Project created successfully!')
+            return response
+        except Exception as e:
+            messages.error(self.request, f'Form validation error: {str(e)}')
+            return self.form_invalid(form)
 
     def form_invalid(self, form):
-        messages.error(self.request, 'Please correct the errors below.')
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(self.request, f'{field}: {error}')
         return super().form_invalid(form)
 
 
@@ -350,3 +336,420 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+
+
+class TaskKanbanView(LoginRequiredMixin, ListView):
+    model = Task
+    template_name = 'dashboard/project/task_kanban.html'
+    context_object_name = 'tasks'
+
+    def get_queryset(self):
+        self.project = get_object_or_404(Project, uuid=self.kwargs['project_uuid'])
+        return Task.objects.filter(project=self.project).select_related(
+            'assigned_to',
+            'created_by',
+            'project'
+        ).order_by('created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tasks = self.get_queryset()
+
+        def get_user_initials(user):
+            """Helper function to get user initials"""
+            if not user:
+                return 'UN'
+            if user.first_name and user.last_name:
+                return f"{user.first_name[0]}{user.last_name[0]}".upper()
+            elif user.first_name:
+                return user.first_name[0].upper()
+            elif user.last_name:
+                return user.last_name[0].upper()
+            return user.username[0].upper() if user.username else 'U'
+
+        def prepare_tasks(task_list):
+            return [
+                {
+                    'id': str(task.id),
+                    'title': f"""
+                        <div class="kanban-item-title">
+                            <h6 class="title">[{task.code}] {task.title}</h6>
+                            <div class="drodown">
+                                <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
+                                    <div class="user-avatar-group">
+                                        <div class="user-avatar xs bg-primary">
+                                            <span>{get_user_initials(task.assigned_to)}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end">
+                                    <ul class="link-list-opt no-bdr p-3 g-2">
+                                        <li>
+                                            <div class="user-card">
+                                                <div class="user-avatar sm bg-primary">
+                                                    <span>{get_user_initials(task.assigned_to)}</span>
+                                                </div>
+                                                <div class="user-name">
+                                                    <span class="tb-lead">{task.assigned_to if task.assigned_to else 'Unassigned'}</span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kanban-item-text">
+                            <p>{task.description[:100] + '...' if task.description and len(task.description) > 100 else task.description or 'No description'}</p>
+                        </div>
+                        <div class="kanban-item-meta">
+                            <ul class="kanban-item-meta-list">
+                                <li class="text-{'danger' if task.is_overdue else 'warning' if task.due_date else 'soft'}">
+                                    <em class="icon ni ni-calendar"></em>
+                                    <span>{'Due: ' + task.due_date.strftime('%d %b %Y') if task.due_date else 'No due date'}</span>
+                                </li>
+                            </ul>
+                            <ul class="kanban-item-meta-list">
+                                <li><em class="icon ni ni-notes"></em><span>Task</span></li>
+                            </ul>
+                        </div>
+                    """,
+                    'update_url': reverse('project:task_update_status', kwargs={
+                        'project_uuid': task.project.uuid,
+                        'code': task.code
+                    })
+                } for task in task_list
+            ]
+
+        kanban_data = [
+            {
+                'id': 'pending',
+                'title': 'Pending',
+                'class': 'kanban-light',
+                'item': prepare_tasks(tasks.filter(status='pending'))
+            },
+            {
+                'id': 'in_progress',
+                'title': 'In Progress',
+                'class': 'kanban-primary',
+                'item': prepare_tasks(tasks.filter(status='in_progress'))
+            },
+            {
+                'id': 'completed',
+                'title': 'Completed',
+                'class': 'kanban-success',
+                'item': prepare_tasks(tasks.filter(status='completed'))
+            }
+        ]
+
+        context.update({
+            'project': self.project,
+            'kanban_data': json.dumps(kanban_data),
+            'task_stats': self.project.get_task_stats(),
+            'can_create': self.project.can_user_edit(self.request.user),
+            'create_url': reverse('project:task_create', kwargs={'project_uuid': self.project.uuid})
+        })
+        return context
+
+
+class TaskListView(LoginRequiredMixin, ListView):
+    model = Task
+    template_name = 'dashboard/project/task_list.html'
+    context_object_name = 'tasks'
+    paginate_by = 10
+
+    def get_queryset(self):
+        self.project = get_object_or_404(Project, uuid=self.kwargs['project_uuid'])
+        return Task.objects.filter(project=self.project).select_related(
+            'assigned_to',
+            'created_by'
+        ).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        context['task_stats'] = self.project.get_task_stats()
+        context['can_create'] = self.project.can_user_edit(self.request.user)
+        return context
+
+
+class TaskCreateView(LoginRequiredMixin, PermissionMixin, CreateView):
+    model = Task
+    template_name = 'dashboard/project/task_form.html'
+    fields = ['title', 'description', 'status', 'assigned_to', 'due_date']
+
+    def has_permission(self):
+        return self.project.can_user_edit(self.request.user)
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['assigned_to'].queryset = self.project.team_members.all()
+        return form
+
+    def form_valid(self, form):
+        form.instance.project = self.project
+        form.instance._current_user = self.request.user
+        messages.success(self.request, 'Task created successfully.')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        context['action'] = 'Create'
+        return context
+
+
+class TaskUpdateView(LoginRequiredMixin, PermissionMixin, UpdateView):
+    model = Task
+    template_name = 'dashboard/project/task_form.html'
+    fields = ['title', 'description', 'status', 'assigned_to', 'due_date']
+    context_object_name = 'task'
+
+    def get_object(self):
+        return get_object_or_404(
+            Task,
+            project__uuid=self.kwargs['project_uuid'],
+            code=self.kwargs['code']
+        )
+
+    def has_permission(self):
+        return self.get_object().can_user_edit(self.request.user)
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['assigned_to'].queryset = self.object.project.team_members.all()
+        return form
+
+    def form_valid(self, form):
+        form.instance._current_user = self.request.user
+        messages.success(self.request, 'Task updated successfully.')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.object.project
+        context['action'] = 'Update'
+        return context
+
+
+class TaskDeleteView(LoginRequiredMixin, PermissionMixin, DeleteView):
+    model = Task
+    template_name = 'dashboard/project/task_confirm_delete.html'
+    context_object_name = 'task'
+
+    def get_object(self):
+        return get_object_or_404(
+            Task,
+            project__uuid=self.kwargs['project_uuid'],
+            code=self.kwargs['code']
+        )
+
+    def has_permission(self):
+        return self.get_object().can_user_edit(self.request.user)
+
+    def get_success_url(self):
+        messages.success(self.request, 'Task deleted successfully.')
+        return reverse_lazy('project:task_list', kwargs={
+            'project_uuid': self.object.project.uuid
+        })
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.object.project
+        return context
+
+
+class TaskDetailView(LoginRequiredMixin, DetailView):
+    model = Task
+    template_name = 'dashboard/project/task_detail.html'
+    context_object_name = 'task'
+
+    def get_object(self):
+        return get_object_or_404(
+            Task.objects.select_related(
+                'project',
+                'assigned_to',
+                'created_by'
+            ),
+            project__uuid=self.kwargs['project_uuid'],
+            code=self.kwargs['code']
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        task = self.object
+
+        # Get activity logs for this task using content type
+        activity_logs = ActivityLog.objects.filter(
+            content_type__model='task',
+            object_id=str(task.id)
+        ).select_related(
+            'actor',
+            'content_type'
+        ).order_by('-timestamp')[:10]
+
+        # Group activities by date
+        grouped_activities = {}
+        for log in activity_logs:
+            date = log.timestamp.date()
+            if date not in grouped_activities:
+                grouped_activities[date] = []
+            grouped_activities[date].append(log)
+
+        context.update({
+            'project': task.project,
+            'activity_logs': activity_logs,
+            'grouped_activities': grouped_activities,
+            'can_edit': task.can_user_edit(self.request.user)
+        })
+        return context
+
+
+class ProjectFundUsageView(DetailView):
+    template_name = 'dashboard/project/fund_usage.html'
+    context_object_name = 'project'
+
+    def get_object(self):
+        # Store the project as self.project so we can use it in get_context_data
+        self.project = get_object_or_404(Project, uuid=self.kwargs['project_uuid'])
+        return self.project
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context.update({
+            'total_budget': self.project.get_total_budget(),
+            'total_expenses': self.project.get_total_expenses(),
+            'remaining_budget': self.project.get_remaining_budget(),
+            # Add project UUID to context if needed for URLs
+            'project_uuid': self.project.uuid
+        })
+
+        return context
+
+
+class ProjectTeamView(LoginRequiredMixin, ListView):
+    template_name = 'dashboard/project/member.html'
+    context_object_name = 'team_members'
+
+    def get_queryset(self):
+        self.project = get_object_or_404(Project, uuid=self.kwargs['project_uuid'])
+        return ProjectMember.objects.filter(project=self.project).select_related('user')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        context['available_roles'] = ProjectMember._meta.get_field('role').choices
+        return context
+
+
+class InviteMemberView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = ProjectMember
+    template_name = 'project/team/invite_member.html'
+    fields = ['user', 'role']
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.project = get_object_or_404(Project, uuid=kwargs['project_uuid'])
+
+    def test_func(self):
+        return self.request.user == self.project.created_by or \
+            self.project.projectmember_set.filter(
+                user=self.request.user,
+                role__in=['owner', 'manager']
+            ).exists()
+
+    def form_valid(self, form):
+        form.instance.project = self.project
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('project:team', kwargs={'project_uuid': self.project.uuid})
+
+
+@method_decorator(require_POST, name='dispatch')
+class UpdateMemberRoleView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = ProjectMember
+    fields = ['role']
+    http_method_names = ['post']
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.project = get_object_or_404(Project, uuid=kwargs['project_uuid'])
+
+    def test_func(self):
+        return self.request.user == self.project.created_by or \
+            self.project.projectmember_set.filter(
+                user=self.request.user,
+                role__in=['owner', 'manager']
+            ).exists()
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.request.headers.get('HX-Request'):
+            return JsonResponse({
+                'success': True,
+                'role': self.object.get_role_display()
+            })
+        return response
+
+
+@method_decorator(require_POST, name='dispatch')
+class RemoveMemberView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = ProjectMember
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.project = get_object_or_404(Project, uuid=kwargs['project_uuid'])
+        self.object = get_object_or_404(ProjectMember,
+                                        project=self.project,
+                                        id=kwargs['member_id']
+                                        )
+
+    def test_func(self):
+        return self.request.user == self.project.created_by or \
+            self.project.projectmember_set.filter(
+                user=self.request.user,
+                role__in=['owner', 'manager']
+            ).exists()
+
+    def get_success_url(self):
+        return reverse_lazy('project:team', kwargs={'project_uuid': self.project.uuid})
+
+@method_decorator(csrf_protect, name='dispatch')
+class TaskUpdateStatusView(LoginRequiredMixin, PermissionMixin, View):
+    def post(self, request, *args, **kwargs):
+        try:
+            task = get_object_or_404(Task,
+                                     project__uuid=kwargs['project_uuid'],
+                                     code=kwargs['code']
+                                     )
+
+            data = json.loads(request.body)
+            new_status = data.get('status')
+
+            print(f"Received status update: {new_status} for task {task.code}")  # Debug log
+
+            # Make sure this matches your Task model's status choices
+            valid_statuses = dict(Task._meta.get_field('status').choices)
+            if new_status not in valid_statuses:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Invalid status: {new_status}. Valid statuses are: {list(valid_statuses.keys())}'
+                })
+
+            task.status = new_status
+            task._current_user = request.user
+            task.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Task status updated to {new_status}'
+            })
+
+        except Exception as e:
+            print(f"Error updating task status: {str(e)}")  # Debug log
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+

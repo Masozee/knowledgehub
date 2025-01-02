@@ -90,6 +90,20 @@ class CustomUser(AbstractUser):
             self.user_type = 'visitor'  # Default type for regular users
         super().save(*args, **kwargs)
 
+    def get_avatar_color(self):
+        colors = ['primary', 'success', 'warning', 'purple', 'danger', 'info', 'dark']
+        return colors[hash(self.email) % len(colors)]
+
+    def get_initials(self):
+        """Get user's initials from full name"""
+        if self.first_name and self.last_name:
+            return f"{self.first_name[0]}{self.last_name[0]}".upper()
+        elif self.first_name:
+            return self.first_name[0].upper()
+        elif self.last_name:
+            return self.last_name[0].upper()
+        return self.username[0].upper() if self.username else 'U'
+
 class Organization(models.Model):
     name = models.CharField(max_length=50)
     slug = models.SlugField(unique=True)
@@ -108,12 +122,22 @@ class Person(models.Model):
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField(null=True, blank=True)
     image = models.ImageField(upload_to='people/%Y/%m/%d/', null=True, blank=True)
+    organization = models.ManyToManyField(
+        Organization, blank=True, related_name='people', verbose_name='organization'
+    )
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=20, blank=True)
     address = models.TextField(blank=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+    def get_avatar_color(self):
+        colors = ['primary', 'success', 'warning', 'purple', 'danger', 'info', 'dark']
+        return colors[hash(self.email) % len(colors)]
+
+    def get_initials(self):
+        return ''.join(n[0].upper() for n in self.get_full_name().split()[:2])
 
 class Relationship(models.Model):
     RELATIONSHIP_CHOICES = (
@@ -141,25 +165,6 @@ class Staff(models.Model):
     def __str__(self):
         return f"{self.person} - {self.position}"
 
-class Speaker(models.Model):
-    person = models.OneToOneField(Person, on_delete=models.CASCADE)
-    bio = models.TextField()
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
-    areas_of_expertise = models.CharField(
-        max_length=255)  # Consider using a separate model for a many-to-many relationship
-    speaking_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.person} - Speaker"
-
-class Writer(models.Model):
-    person = models.OneToOneField(Person, on_delete=models.CASCADE)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True, blank=True)
-    genre = models.CharField(max_length=100)
-    publications = models.TextField()
-
-    def __str__(self):
-        return f"{self.person} - Writer"
 
 class PhotoBackup(models.Model):
     STATUS_CHOICES = (

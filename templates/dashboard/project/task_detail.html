@@ -1,0 +1,160 @@
+{% extends 'dashboard/project/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="nk-content-body">
+    <div class="nk-content-wrap">
+        <div class="nk-block-head nk-block-head-sm">
+            <div class="nk-block-between">
+                <div class="nk-block-head-content">
+                    <h3 class="nk-block-title page-title">Task Details</h3>
+                    <div class="nk-block-des text-soft">
+                        <p>[{{ task.code }}] {{ task.title }}</p>
+                    </div>
+                </div>
+                <div class="nk-block-head-content">
+                    <div class="toggle-wrap nk-block-tools-toggle">
+                        <div class="toggle-expand-content" data-content="pageMenu">
+                            <ul class="nk-block-tools g-3">
+                                {% if can_edit %}
+                                <li>
+                                    <a href="{% url 'project:task_update' project.uuid task.code %}" class="btn btn-white btn-outline-light">
+                                        <em class="icon ni ni-edit"></em><span>Edit Task</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'project:task_delete' project.uuid task.code %}" class="btn btn-danger btn-outline-light">
+                                        <em class="icon ni ni-trash"></em><span>Delete</span>
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li>
+                                    <a href="{% url 'project:task_kanban' project.uuid %}" class="btn btn-primary">
+                                        <em class="icon ni ni-cards"></em><span>Kanban Board</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="nk-block">
+            <div class="row g-gs">
+                <!-- Task Details Card -->
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-inner">
+                            <div class="nk-block">
+                                <div class="nk-block-head">
+                                    <h5 class="title">Task Information</h5>
+                                </div>
+                                <div class="profile-ud-list">
+                                    <div class="profile-ud-item">
+                                        <div class="profile-ud wider">
+                                            <span class="profile-ud-label">Status</span>
+                                            <span class="profile-ud-value">
+                                                <span class="badge badge-dim bg-{{ task.status_color }}">
+                                                    {{ task.get_status_display }}
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="profile-ud-item">
+                                        <div class="profile-ud wider">
+                                            <span class="profile-ud-label">Assigned To</span>
+                                            <span class="profile-ud-value">
+                                                {% if task.assigned_to %}
+                                                    <div class="user-card">
+                                                        <div class="user-avatar sm bg-primary">
+                                                            {% if task.assigned_to.profile.avatar %}
+                                                                <img src="{{ task.assigned_to.profile.avatar.url }}" alt="">
+                                                            {% else %}
+                                                                <span>{{ task.assigned_to.get_initials }}</span>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="user-info">
+                                                            <span class="tb-lead">{{ task.assigned_to.get_full_name }}</span>
+                                                        </div>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-soft">Unassigned</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="profile-ud-item">
+                                        <div class="profile-ud wider">
+                                            <span class="profile-ud-label">Due Date</span>
+                                            <span class="profile-ud-value">
+                                                {% if task.due_date %}
+                                                    <span class="badge badge-dim bg-warning">
+                                                        <em class="icon ni ni-calendar"></em>
+                                                        <span>{{ task.due_date|date:"Y-m-d" }}</span>
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-soft">No due date set</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="profile-ud-item">
+                                        <div class="profile-ud wider">
+                                            <span class="profile-ud-label">Created By</span>
+                                            <span class="profile-ud-value">
+                                                {{ task.created_by.get_full_name }}
+                                                <small class="text-soft">({{ task.created_at|date:"Y-m-d H:i" }})</small>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="nk-block">
+                                <div class="nk-block-head">
+                                    <h5 class="title">Description</h5>
+                                </div>
+                                <div class="nk-block-text">
+                                    {{ task.description|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Activity Timeline -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-inner">
+                            <div class="nk-block-head">
+                                <h5 class="title">Activity Timeline</h5>
+                            </div>
+                            <div class="nk-block">
+                                <div class="nk-block-content">
+                                    <div class="timeline">
+                                        {% for date, logs in grouped_activities.items %}
+                                            <h6 class="timeline-head">{{ date|date:"F d, Y" }}</h6>
+                                            {% for log in logs %}
+                                                <div class="timeline-item">
+                                                    <div class="timeline-status bg-primary"></div>
+                                                    <div class="timeline-date">{{ log.timestamp|time:"H:i" }}</div>
+                                                    <div class="timeline-data">
+                                                        <div class="timeline-des">
+                                                            <p>{{ log.description }}</p>
+                                                            <span class="time">by {{ log.actor.get_full_name }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        {% empty %}
+                                            <div class="text-center text-soft">No activities found</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,27 +1,21 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Sum
+from django.conf import settings
 
 class MoneyField(models.DecimalField):
-    """Custom field for monetary values"""
+    """Custom field for monetary values with standard non-profit accounting precision"""
+
     def __init__(self, *args, **kwargs):
-        kwargs['max_digits'] = kwargs.get('max_digits', 12)
+        kwargs['max_digits'] = kwargs.get('max_digits', 15)  # Increased for large grants
         kwargs['decimal_places'] = kwargs.get('decimal_places', 2)
         super().__init__(*args, **kwargs)
 
-    def deconstruct(self):
-        name, path, args, kwargs = super().deconstruct()
-        if kwargs.get('max_digits') == 12:
-            del kwargs['max_digits']
-        if kwargs.get('decimal_places') == 2:
-            del kwargs['decimal_places']
-        return name, path, args, kwargs
 
 class Currency(models.Model):
+    """Currency model with standard ISO codes"""
     code = models.CharField(max_length=3, unique=True)
     name = models.CharField(max_length=50)
     symbol = models.CharField(max_length=5)
@@ -33,287 +27,282 @@ class Currency(models.Model):
     def __str__(self):
         return f"{self.code} - {self.name}"
 
-    def save(self, *args, **kwargs):
-        self.code = self.code.upper()
-        super().save(*args, **kwargs)
 
-class ExchangeRate(models.Model):
-    from_currency = models.ForeignKey(Currency, related_name='from_rates', on_delete=models.CASCADE)
-    to_currency = models.ForeignKey(Currency, related_name='to_rates', on_delete=models.CASCADE)
-    rate = models.DecimalField(max_digits=12, decimal_places=6)
-    date = models.DateField(default=timezone.now)
+class FiscalYear(models.Model):
+    """Fiscal Year configuration for the organization"""
+    year = models.IntegerField(unique=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('from_currency', 'to_currency', 'date')
-        ordering = ['-date']
+        ordering = ['-year']
 
     def __str__(self):
-        return f"{self.from_currency.code} to {self.to_currency.code}: {self.rate} on {self.date}"
+        return f"FY {self.year}"
 
     def clean(self):
-        if self.from_currency == self.to_currency:
-            raise ValidationError("From currency and To currency cannot be the same")
+        if self.end_date <= self.start_date:
+            raise ValidationError("End date must be after start date")
 
-class DocumentProof(models.Model):
-    file = models.FileField(upload_to='expense_proofs/')
+
+class SupportingDocument(models.Model):
+    """Enhanced document proof model for better audit trail"""
+    DOCUMENT_TYPES = [
+        ('INVOICE', 'Invoice'),
+        ('RECEIPT', 'Receipt'),
+        ('CONTRACT', 'Contract'),
+        ('REPORT', 'Financial Report'),
+        ('OTHER', 'Other Documentation')
+    ]
+
+    file = models.FileField(upload_to='financial_documents/%Y/%m/')
+    document_type = models.CharField(max_length=20, choices=DOCUMENT_TYPES)
+    document_number = models.CharField(max_length=50, blank=True)
+    document_date = models.DateField()
     upload_date = models.DateTimeField(auto_now_add=True)
-    description = models.CharField(max_length=255, blank=True)
+    description = models.TextField()
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
+    verified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    verification_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        ordering = ['-upload_date']
+        ordering = ['-document_date']
+        indexes = [
+            models.Index(fields=['document_type', 'document_date']),
+            models.Index(fields=['content_type', 'object_id']),
+        ]
 
     def __str__(self):
-        return f"Document proof for {self.content_object} uploaded on {self.upload_date}"
+        return f"{self.get_document_type_display()} - {self.document_number} ({self.document_date})"
 
-class JournalEntry(models.Model):
-    date = models.DateField(default=timezone.now)
-    description = models.CharField(max_length=255)
-    debit_account = models.CharField(max_length=100)
-    credit_account = models.CharField(max_length=100)
-    amount = MoneyField()
-    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, blank=True, null=True)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
-    object_id = models.PositiveIntegerField(null=True, blank=True)
-    related_object = GenericForeignKey('content_type', 'object_id')
 
-    class Meta:
-        verbose_name_plural = 'Journal entries'
-        ordering = ['-date']
-
-    def __str__(self):
-        return f"{self.date} - {self.description} ({self.amount})"
-
-    def to_rupiah(self):
-        if self.currency.code == 'IDR':
-            return self.amount
-        try:
-            rate = ExchangeRate.objects.get(
-                from_currency=self.currency,
-                to_currency=Currency.objects.get(code='IDR'),
-                date=self.date
-            )
-            return self.amount * rate.rate
-        except ExchangeRate.DoesNotExist:
-            raise ValidationError(f"Exchange rate not found for {self.currency.code} to IDR on {self.date}")
-
-class Grant(models.Model):
+class FundingSource(models.Model):
+    """Abstract base class for all funding sources"""
     name = models.CharField(max_length=255)
-    amount = MoneyField()
-    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, blank=True, null=True)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    document_proofs = GenericRelation(DocumentProof)
+    description = models.TextField()
+    currency = models.ForeignKey(Currency, on_delete=models.PROTECT)
+    is_active = models.BooleanField(default=True)
+    documents = GenericRelation(SupportingDocument)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-start_date']
-
-    def __str__(self):
-        return f"{self.name} ({self.amount})"
-
-    def clean(self):
-        if self.end_date and self.start_date and self.end_date < self.start_date:
-            raise ValidationError("End date cannot be before start date")
+        abstract = True
 
     def get_balance(self):
-        total_expenses = sum(expense.to_rupiah() for expense in self.expenses.all())
-        return self.to_rupiah() - total_expenses
+        """Must be implemented by subclasses"""
+        raise NotImplementedError
 
-    def get_pos_balance(self):
-        total_allocated = sum(allocation.to_rupiah() for allocation in self.pos_allocations.all())
-        return self.to_rupiah() - total_allocated
+    def to_base_currency(self, amount, date=None):
+        """Convert amount to organization's base currency"""
+        if not date:
+            date = timezone.now().date()
 
-    def to_rupiah(self):
-        if self.currency.code == 'IDR':
-            return self.amount
-        try:
-            rate = ExchangeRate.objects.get(
-                from_currency=self.currency,
-                to_currency=Currency.objects.get(code='IDR'),
-                date=timezone.now().date()
-            )
-            return self.amount * rate.rate
-        except ExchangeRate.DoesNotExist:
-            raise ValidationError(f"Exchange rate not found for {self.currency.code} to IDR")
-
-class Budget(models.Model):
-    fiscal_year = models.IntegerField()
-    initial_amount = MoneyField()
-    additional_amount = MoneyField(default=0)
-    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, blank=True, null=True)
-    document_proofs = GenericRelation(DocumentProof)
-
-    class Meta:
-        ordering = ['-fiscal_year']
-
-    def __str__(self):
-        return f"Budget {self.fiscal_year} ({self.get_total_amount():,.2f})"
-
-    def get_total_amount(self):
-        return self.initial_amount + self.additional_amount
-
-    def get_allocated_amount(self):
-        return sum(allocation.amount for allocation in self.allocations.all())
-
-    def get_balance(self):
-        return self.get_total_amount() - self.get_allocated_amount()
-
-    def get_pos_balance(self):
-        pos_allocated = sum(allocation.amount for allocation in self.pos_allocations.all())
-        return self.get_total_amount() - pos_allocated
-
-    def to_rupiah(self, amount):
-        if self.currency.code == 'IDR':
+        if self.currency.code == settings.BASE_CURRENCY:
             return amount
+
         try:
             rate = ExchangeRate.objects.get(
                 from_currency=self.currency,
-                to_currency=Currency.objects.get(code='IDR'),
-                date=timezone.now().date()
+                to_currency=Currency.objects.get(code=settings.BASE_CURRENCY),
+                date=date
             )
             return amount * rate.rate
         except ExchangeRate.DoesNotExist:
-            raise ValidationError(f"Exchange rate not found for {self.currency.code} to IDR")
+            raise ValidationError(
+                f"Exchange rate not found for {self.currency.code} to {settings.BASE_CURRENCY} on {date}")
 
-class BudgetAllocation(models.Model):
-    budget = models.ForeignKey(Budget, related_name='allocations', on_delete=models.CASCADE)
-    category = models.CharField(max_length=100)
+
+class Grant(FundingSource):
+    """Enhanced Grant model for donor funding"""
+    GRANT_TYPES = [
+        ('RESTRICTED', 'Restricted'),
+        ('UNRESTRICTED', 'Unrestricted'),
+        ('PROJECT', 'Project-Based'),
+        ('PROGRAM', 'Program-Based'),
+    ]
+
+    grant_type = models.CharField(max_length=20, choices=GRANT_TYPES)
+    donor = models.ForeignKey('Donor', on_delete=models.PROTECT)
+    reference_number = models.CharField(max_length=50, unique=True)
     amount = MoneyField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    reporting_frequency = models.CharField(max_length=20, choices=[
+        ('MONTHLY', 'Monthly'),
+        ('QUARTERLY', 'Quarterly'),
+        ('SEMI_ANNUAL', 'Semi-Annual'),
+        ('ANNUAL', 'Annual')
+    ])
 
     class Meta:
-        ordering = ['category']
+        ordering = ['-start_date']
+        indexes = [
+            models.Index(fields=['grant_type', 'start_date']),
+            models.Index(fields=['donor', 'reference_number']),
+        ]
 
-    def get_currency_symbol(self):
-        """Helper method to safely get currency symbol with fallback"""
-        try:
-            if self.budget and self.budget.currency:
-                return getattr(self.budget.currency, 'symbol', 'Rp')
-        except AttributeError:
-            pass
-        return '$'  # Default fallback symbol
+    def get_balance(self):
+        """Calculate available balance"""
+        # Get approved project fundings using this grant
+        allocated = self.funded_projects.filter(
+            status='APPROVED'
+        ).aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+        return self.amount - allocated
+
+    def is_active(self):
+        today = timezone.now().date()
+        return self.start_date <= today <= self.end_date
+
+
+class Budget(FundingSource):
+    """Enhanced Budget model for organizational funds"""
+    fiscal_year = models.ForeignKey(FiscalYear, on_delete=models.PROTECT)
+    initial_amount = MoneyField()
+    revised_amount = MoneyField(default=0)
+
+    BUDGET_TYPES = [
+        ('OPERATIONAL', 'Operational'),
+        ('CAPITAL', 'Capital'),
+        ('PROJECT', 'Project'),
+        ('EMERGENCY', 'Emergency Fund')
+    ]
+    budget_type = models.CharField(max_length=20, choices=BUDGET_TYPES)
+
+    class Meta:
+        ordering = ['-fiscal_year']
+        unique_together = ['fiscal_year', 'budget_type']
+
+    def get_total_budget(self):
+        return self.initial_amount + self.revised_amount
+
+    def get_balance(self):
+        allocated = self.allocations.aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+        return self.get_total_budget() - allocated
+
+
+class BudgetLine(models.Model):
+    """Budget allocation model with cost centers"""
+    budget = models.ForeignKey(Budget, related_name='allocations', on_delete=models.PROTECT)
+    cost_center = models.ForeignKey('CostCenter', on_delete=models.PROTECT)
+    amount = MoneyField()
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['cost_center']
+        unique_together = ['budget', 'cost_center']
 
     def __str__(self):
-        try:
-            symbol = self.get_currency_symbol()
-            fiscal_year = self.budget.fiscal_year if self.budget else 'Unknown'
-            return f"{fiscal_year} - {self.category} ({symbol}{self.amount})"
-        except AttributeError:
-            return f"Budget Allocation - {self.category}"
+        return f"{self.cost_center} - {self.budget.fiscal_year}"
+
+
+class CostCenter(models.Model):
+    """Cost Center for tracking expenses across different organizational units"""
+    code = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=100)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['code']
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+
+class Expense(models.Model):
+    """Enhanced expense tracking with approval workflow"""
+    EXPENSE_TYPES = [
+        ('DIRECT', 'Direct Cost'),
+        ('INDIRECT', 'Indirect Cost'),
+        ('OVERHEAD', 'Overhead'),
+    ]
+
+    EXPENSE_STATUS = [
+        ('DRAFT', 'Draft'),
+        ('SUBMITTED', 'Submitted'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+        ('PAID', 'Paid')
+    ]
+
+    date = models.DateField()
+    description = models.TextField()
+    amount = MoneyField()
+    currency = models.ForeignKey(Currency, on_delete=models.PROTECT)
+    expense_type = models.CharField(max_length=20, choices=EXPENSE_TYPES)
+    cost_center = models.ForeignKey(CostCenter, on_delete=models.PROTECT)
+
+    # Funding source - either grant or budget
+    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+    object_id = models.PositiveIntegerField()
+    funding_source = GenericForeignKey('content_type', 'object_id')
+
+    status = models.CharField(max_length=20, choices=EXPENSE_STATUS, default='DRAFT')
+    documents = GenericRelation(SupportingDocument)
+
+    # Approval workflow
+    submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='submitted_expenses', on_delete=models.PROTECT)
+    submitted_date = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='approved_expenses', null=True, blank=True,
+                                    on_delete=models.PROTECT)
+    approved_date = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-date']
+        indexes = [
+            models.Index(fields=['status', 'date']),
+            models.Index(fields=['content_type', 'object_id']),
+        ]
+
+    def __str__(self):
+        return f"{self.date} - {self.description} ({self.amount} {self.currency.code})"
 
     def clean(self):
-        """Validate the model before saving"""
-        if not self.budget:
-            raise ValidationError({'budget': 'Budget is required'})
+        if self.status == 'APPROVED' and not self.approved_by:
+            raise ValidationError("Approved expenses must have an approver")
 
-        if not self.amount:
-            raise ValidationError({'amount': 'Amount is required'})
+        if self.status == 'SUBMITTED' and not self.submitted_date:
+            raise ValidationError("Submitted expenses must have a submission date")
 
-    def save(self, *args, **kwargs):
-        self.clean()  # Run validation before saving
 
-        try:
-            if self.pk:
-                old_allocation = BudgetAllocation.objects.get(pk=self.pk)
-                if old_allocation:
-                    amount_difference = self.amount - old_allocation.amount
-                else:
-                    amount_difference = self.amount
-            else:
-                amount_difference = self.amount
-
-            if self.budget:
-                current_balance = self.budget.get_balance()
-                if amount_difference > current_balance:
-                    needed_additional = amount_difference - current_balance
-                    self.budget.additional_amount += needed_additional
-                    self.budget.save()
-
-            super().save(*args, **kwargs)
-        except Exception as e:
-            # You might want to log this error
-            raise ValidationError(f"Error saving budget allocation: {str(e)}")
-
-    @property
-    def formatted_amount(self):
-        """Property to safely format the amount with currency symbol"""
-        try:
-            symbol = self.get_currency_symbol()
-            return f"{symbol}{self.amount:,.2f}"
-        except (AttributeError, TypeError):
-            return str(self.amount)
-
-class PosAllocation(models.Model):
+class Donor(models.Model):
+    """Donor organization information"""
     name = models.CharField(max_length=255)
-    amount = MoneyField()
-    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, blank=True, null=True)
-    budget = models.ForeignKey(Budget, on_delete=models.CASCADE, related_name='pos_allocations', null=True, blank=True)
-    grant = models.ForeignKey(Grant, on_delete=models.CASCADE, related_name='pos_allocations', null=True, blank=True)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
-    object_id = models.PositiveIntegerField(null=True, blank=True)
-    content_object = GenericForeignKey('content_type', 'object_id')
-    document_proofs = GenericRelation(DocumentProof)
+    contact_person = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone = models.CharField(max_length=50, blank=True)
+    address = models.TextField()
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['name']
 
     def __str__(self):
-        return f"{self.name} ({self.amount})"
+        return self.name
 
-    def clean(self):
-        if self.budget and self.grant:
-            raise ValidationError("A POS allocation must be associated with either a budget or a grant, not both.")
-        if not self.budget and not self.grant:
-            raise ValidationError("A POS allocation must be associated with either a budget or a grant.")
 
-class Expense(models.Model):
-    date = models.DateField(default=timezone.now)
-    description = models.CharField(max_length=255)
-    amount = MoneyField()
-    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, blank=True, null=True)
-    document_proof = models.ForeignKey(DocumentProof, on_delete=models.SET_NULL, null=True, blank=True)
+class ExchangeRate(models.Model):
+    """Daily exchange rates"""
+    from_currency = models.ForeignKey(Currency, related_name='from_rates', on_delete=models.CASCADE)
+    to_currency = models.ForeignKey(Currency, related_name='to_rates', on_delete=models.CASCADE)
+    rate = models.DecimalField(max_digits=12, decimal_places=6)
+    date = models.DateField()
 
     class Meta:
-        abstract = True
-
-    def to_rupiah(self):
-        if self.currency.code == 'IDR':
-            return self.amount
-        try:
-            rate = ExchangeRate.objects.get(
-                from_currency=self.currency,
-                to_currency=Currency.objects.get(code='IDR'),
-                date=self.date
-            )
-            return self.amount * rate.rate
-        except ExchangeRate.DoesNotExist:
-            raise ValidationError(f"Exchange rate not found for {self.currency.code} to IDR on {self.date}")
-
-class GrantExpense(Expense):
-    grant = models.ForeignKey(Grant, related_name='expenses', on_delete=models.CASCADE)
-
-    class Meta:
+        unique_together = ('from_currency', 'to_currency', 'date')
         ordering = ['-date']
+        indexes = [
+            models.Index(fields=['date', 'from_currency', 'to_currency']),
+        ]
 
     def __str__(self):
-        return f"{self.grant.name} - {self.description} ({self.amount})"
-
-    def clean(self):
-        super().clean()
-        if self.grant.currency != self.currency:
-            raise ValidationError("Expense currency must match grant currency")
-
-class PosExpense(Expense):
-    pos_allocation = models.ForeignKey(PosAllocation, on_delete=models.CASCADE, related_name='expenses')
-
-    class Meta:
-        ordering = ['-date']
-
-    def __str__(self):
-        return f"{self.pos_allocation.name} - {self.description} ({self.amount})"
-
-    def clean(self):
-        super().clean()
-        if self.pos_allocation.currency != self.currency:
-            raise ValidationError("Expense currency must match POS allocation currency")
+        return f"{self.date}: {self.from_currency.code}/{self.to_currency.code} = {self.rate}"

@@ -73,24 +73,13 @@ class ProjectCreateForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = [
-            'title', 'description', 'public_project',
-            'start_date', 'end_date'
+            'title', 'description', 'public_project', 'project_lead',
+            'tags', 'start_date', 'end_date', 'team_members'
         ]
 
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+    def __init__(self, user=None, *args, **kwargs):
+        self.user = user
         super().__init__(*args, **kwargs)
-
-        if self.user:
-            # Exclude current user from team members selection
-            self.fields['team_members'].queryset = User.objects.filter(
-                is_active=True
-            ).exclude(
-                id=self.user.id
-            ).order_by('first_name')
-
-            # Set initial project lead as current user
-            self.fields['project_lead'].initial = self.user.id
 
     def clean(self):
         cleaned_data = super().clean()

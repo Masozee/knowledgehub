@@ -1,0 +1,157 @@
+{% extends 'dashboard/project/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="nk-content-body">
+    <div class="nk-content-wrap">
+        <div class="nk-block-head nk-block-head-sm">
+            <div class="nk-block-between">
+                <div class="nk-block-head-content">
+                    <h3 class="nk-block-title page-title">Project Title: {{ project.title }}</h3>
+                </div>
+                <div class="nk-block-head-content">
+                    <div class="toggle-wrap nk-block-tools-toggle">
+                        <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu"><em class="icon ni ni-menu-alt-r"></em></a>
+                        <div class="toggle-expand-content" data-content="pageMenu">
+                            <ul class="nk-block-tools g-3">
+                                {% if can_create %}
+                                <li><a href="{{ create_url }}" class="btn btn-white btn-outline-light"><em class="icon ni ni-plus"></em><span>Add Task</span></a></li>
+                                {% endif %}
+                                <li class="nk-block-tools-opt"><a href="{% url 'project:task_list' project.uuid %}" class="btn btn-primary"><em class="icon ni ni-list"></em><span>List View</span></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="nk-block">
+            <div id="kanban" class="nk-kanban"></div>
+        </div>
+    </div>
+</div>
+{% csrf_token %}
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'dashboard/assets/js/libs/jkanban.js' %}"></script>
+<script>
+!function(NioApp, $) {
+    "use strict";
+    
+    NioApp.Kanban = function() {
+        function titletemplate(title, count) {
+            return `
+                <div class="kanban-title-content">
+                    <h6 class="title">${title}</h6>
+                    <span class="badge rounded-pill bg-outline-light text-dark">${count}</span>
+                </div>
+                <div class="kanban-title-content">
+                    <div class="drodown">
+                        <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger me-n1" data-bs-toggle="dropdown">
+                            <em class="icon ni ni-more-h"></em>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <ul class="link-list-opt no-bdr">
+                                {% if can_create %}
+                                <li><a href="{{ create_url }}"><em class="icon ni ni-plus-sm"></em><span>Add Task</span></a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        var kanbanData = {{ kanban_data|safe }};
+        var kanban = new jKanban({
+            element: '#kanban',
+            gutter: '0',
+            widthBoard: '320px',
+            responsivePercentage: false,
+            boards: kanbanData.map(board => ({
+                'id': board.id,
+                'title': titletemplate(board.title, board.item.length),
+                'class': board.class,
+                'dragTo': ['pending', 'in_progress', 'completed'],
+                'item': board.item
+            })),
+            dropEl: function(el, target, source, sibling) {
+    const taskId = el.getAttribute('data-eid');
+    const newStatus = target.parentElement.getAttribute('data-id');
+    
+    // Find the task data from kanbanData
+    const task = kanbanData.flatMap(board => board.item)
+        .find(item => item.id === taskId);
+    
+    if (!task) {
+        console.error('Task not found:', taskId);
+        return;
+    }
+
+    // Construct the update URL
+    const updateUrl = task.update_url;
+    console.log('Updating task status:', { taskId, newStatus, updateUrl });
+
+    // Send AJAX request
+    fetch(updateUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Server response:', data);
+        if (data.success) {
+            NioApp.Toast('Task status updated', 'success');
+        } else {
+            console.error('Failed to update task:', data.error);
+            NioApp.Toast(data.error || 'Failed to update task', 'error');
+            kanban.removeElement(taskId);
+            source.appendChild(el);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        NioApp.Toast('Failed to update task', 'error');
+        kanban.removeElement(taskId);
+        source.appendChild(el);
+    });
+}
+        });
+
+        // Add footer with add task button to each board
+        for (var i = 0; i < kanban.options.boards.length; i++) {
+            var board = kanban.findBoard(kanban.options.boards[i].id);
+            $(board).find("footer").html(`
+                <button class="kanban-add-task btn btn-block" onclick="window.location.href='{{ create_url }}'">
+                    <em class="icon ni ni-plus-sm"></em>
+                    <span>Add another task</span>
+                </button>
+            `);
+        }
+    };
+
+    NioApp.coms.docReady.push(NioApp.Kanban);
+}(NioApp, jQuery);
+</script>
+{% csrf_token %}
+{% endblock %}
+
+{% block css %}
+<style>
+    .kanban-item-text p {
+    white-space: pre-line;
+    word-break: break-word;
+    margin-bottom: 0.5rem;
+}
+
+.kanban-item-title h6 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+</style>
+{% endblock %}
