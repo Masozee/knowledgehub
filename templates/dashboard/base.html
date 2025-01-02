@@ -15,6 +15,8 @@
     <!-- StyleSheets  -->
     <link rel="stylesheet" href="{% static 'dashboard/assets/css/dashlite.css' %}">
     <link id="skin-default" rel="stylesheet" href="{% static 'dashboard/assets/css/theme.css' %}">
+    {% block css %}
+    {% endblock %}
 </head>
 
 <body class="nk-body bg-white npc-default has-aside ">
@@ -179,41 +181,41 @@
                                             </div>
                                         </a>
                                         <div class="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1">
-    <div class="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
-        <div class="user-card">
-            <div class="user-avatar">
-                <span>{{ request.user.email|first|upper }}</span>
-            </div>
-            <div class="user-info">
-                <!-- Since we don't have username, use email or first_name if available -->
-                <span class="lead-text">
-                    {% if request.user.get_full_name %}
-                        {{ request.user.get_full_name }}
-                    {% else %}
-                        {{ request.user.email }}
-                    {% endif %}
-                </span>
-                <span class="sub-text">{{ request.user.email }}</span>
-            </div>
-            <div class="user-action">
-                <a class="btn btn-icon me-n2" href="html/user-profile-setting.html"><em class="icon ni ni-setting"></em></a>
-            </div>
-        </div>
-    </div>
-    <div class="dropdown-inner">
-        <ul class="link-list">
-            <li><a href="html/user-profile-regular.html"><em class="icon ni ni-user-alt"></em><span>View Profile</span></a></li>
-            <li><a href="html/user-profile-setting.html"><em class="icon ni ni-setting-alt"></em><span>Account Setting</span></a></li>
-            <li><a href="html/user-profile-activity.html"><em class="icon ni ni-activity-alt"></em><span>Login Activity</span></a></li>
-            <li><a class="dark-switch" href="#"><em class="icon ni ni-moon"></em><span>Dark Mode</span></a></li>
-        </ul>
-    </div>
-    <div class="dropdown-inner">
-        <ul class="link-list">
-            <li><a href="{% url 'account_logout' %}"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
-        </ul>
-    </div>
-</div>
+                                            <div class="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
+                                                <div class="user-card">
+                                                    <div class="user-avatar">
+                                                        <span>{{ request.user.email|first|upper }}</span>
+                                                    </div>
+                                                    <div class="user-info">
+                                                        <!-- Since we don't have username, use email or first_name if available -->
+                                                        <span class="lead-text">
+                                                            {% if request.user.get_full_name %}
+                                                                {{ request.user.get_full_name }}
+                                                            {% else %}
+                                                                {{ request.user.email }}
+                                                            {% endif %}
+                                                        </span>
+                                                        <span class="sub-text">{{ request.user.email }}</span>
+                                                    </div>
+                                                    <div class="user-action">
+                                                        <a class="btn btn-icon me-n2" href="html/user-profile-setting.html"><em class="icon ni ni-setting"></em></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="dropdown-inner">
+                                                <ul class="link-list">
+                                                    <li><a href="html/user-profile-regular.html"><em class="icon ni ni-user-alt"></em><span>View Profile</span></a></li>
+                                                    <li><a href="html/user-profile-setting.html"><em class="icon ni ni-setting-alt"></em><span>Account Setting</span></a></li>
+                                                    <li><a href="html/user-profile-activity.html"><em class="icon ni ni-activity-alt"></em><span>Login Activity</span></a></li>
+                                                    <li><a class="dark-switch" href="#"><em class="icon ni ni-moon"></em><span>Dark Mode</span></a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="dropdown-inner">
+                                                <ul class="link-list">
+                                                    <li><a href="{% url 'account_logout' %}"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
                                     </li><!-- .dropdown -->
                                 </ul><!-- .nk-quick-nav -->
                             </div><!-- .nk-header-tools -->
@@ -251,7 +253,7 @@
                                                     <a href="html/apps-chats.html" class="nk-menu-link"><span class="nk-menu-text">Chats / Messenger</span></a>
                                                 </li>
                                                 <li class="nk-menu-item">
-                                                    <a href="html/apps-calendar.html" class="nk-menu-link"><span class="nk-menu-text">Calendar</span><span class="nk-menu-badge">New</span></a>
+                                                    <a href="{% url 'web:index-calendar' %}" class="nk-menu-link"><span class="nk-menu-text">Calendar</span><span class="nk-menu-badge">New</span></a>
                                                 </li>
                                                 <li class="nk-menu-item">
                                                     <a href="html/apps-kanban.html" class="nk-menu-link"><span class="nk-menu-text">Kanban Board</span><span class="nk-menu-badge">New</span></a>
@@ -452,7 +454,7 @@
                                             </a>
                                         </li><!-- .nk-menu-item -->
                                         <li class="nk-menu-item">
-                                            <a href="html/gallery.html" class="nk-menu-link">
+                                            <a href="{% url 'web:index-calendar' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-calendar-alt"></em></span>
                                                 <span class="nk-menu-text">Calendar</span>
                                             </a>
@@ -500,46 +502,7 @@
         
                                     {% endblock %}
                                     <div class="nk-footer">
-                                    <div class="container wide-xl">
-                                        <div class="nk-footer-wrap g-2">
-                                            <div class="nk-footer-copyright"> &copy; 2024 Knowledge hub by <a href="https://csis.or.id" target="_blank">CSIS</a>
-                                            </div>
-                                            <div class="nk-footer-links">
-                                                <ul class="nav nav-sm">
-                                                    <li class="nav-item dropup">
-                                                        <a href="#" class="dropdown-toggle dropdown-indicator has-indicator nav-link text-base" data-bs-toggle="dropdown" data-offset="0,10"><span>English</span></a>
-                                                        <div class="dropdown-menu dropdown-menu-sm dropdown-menu-end">
-                                                            <ul class="language-list">
-                                                                <li>
-                                                                    <a href="#" class="language-item">
-                                                                        <span class="language-name">English</span>
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#" class="language-item">
-                                                                        <span class="language-name">Español</span>
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#" class="language-item">
-                                                                        <span class="language-name">Français</span>
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="#" class="language-item">
-                                                                        <span class="language-name">Türkçe</span>
-                                                                    </a>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </li>
-                                                    <li class="nav-item">
-                                                        <a data-bs-toggle="modal" href="#region" class="nav-link"><em class="icon ni ni-globe"></em><span class="ms-1">Select Region</span></a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    
                                 </div>
                                 <!-- footer @e -->
                                 </div>

@@ -34,7 +34,8 @@ def projectDetail(request):
     return render(request, 'dashboard/project/detail.html')
 
 
-
+def calendar(request):
+    return render(request, 'dashboard/events/calendar.html')
 
 @login_required
 def wiki(request):

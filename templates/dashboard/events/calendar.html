@@ -1,0 +1,248 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="nk-block-head nk-block-head-md">
+        <div class="nk-block-between">
+            <div class="nk-block-head-content">
+                <h3 class="nk-block-title page-title">Calendar</h3>
+            </div>
+        </div>
+    </div>
+    <div class="nk-block">
+        <div class="card card-bordered">
+            <div class="card-inner">
+                <div class="row g-gs">
+                    <div class="col-lg-8">
+                        <div class="calendar-section" style="border-right: 1px solid #dbdfea;">
+                            <div id="mainCalendar" class="calendar"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="mb-4">
+                            <h6 class="overline-title text-base pb-4">Holidays</h6>
+                            <div class="gy-1 fw-bold">
+                                <div class="text-danger">28. Cuti Bersama Hari Suci Nyepi</div>
+                                <div class="text-danger">29. Hari Suci Nyepi</div>
+                                <div class="text-danger">31. Jum'at Agung</div>
+                            </div>
+                        </div>
+                        <hr class="py-2">
+                        <div class="mb-4 fw-bold">
+                            <h6 class="overline-title text-base">FEB</h6>
+                            <div id="febCalendar" class="mini-calendar"></div>
+                        </div>
+                        <div class="mb-4 fw-bold">
+                            <h6 class="overline-title text-base">APR</h6>
+                            <div id="aprCalendar" class="mini-calendar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block css %}
+<style>
+        .calendar-day.empty {
+            background: transparent;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            position: relative;
+            gap: 0;
+        }
+
+        .calendar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to right,
+                transparent,
+                transparent calc(100%/7 - 1px),
+                #dbdfea calc(100%/7 - 1px),
+                #dbdfea calc(100%/7)
+            );
+            pointer-events: none;
+        }
+
+        .weekday-header {
+            font-size: 13px;
+            padding: 15px 10px;
+            color: #364a63;
+        }
+
+        .sunday-header {
+            color: #e85347;
+        }
+
+        .calendar-day {
+            padding: 10px;
+            min-height: 100px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .date {
+            font-size: 42px;
+            font-weight: bold;
+            line-height: 1;
+            color: #364a63;
+        }
+
+        .sunday {
+            color: #e85347;
+        }
+        
+        .saturday {
+            color: #e85347;
+        }
+
+        .mini-calendar table {
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .mini-calendar td {
+            text-align: center;
+            padding: 4px;
+        }
+
+        .nk-block-head {
+            margin-bottom: 20px;
+        }
+
+        .nk-block-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #dbdfea;
+            border-radius: 4px;
+        }
+
+        .card-inner {
+            padding: 20px;
+        }
+
+        .overline-title {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .text-danger {
+            color: #e85347;
+            margin-bottom: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block js %}
+<script>
+    const DAYS = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
+    const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    
+    function getFirstDayOfMonth(year, month) {
+        return new Date(year, month, 1).getDay();
+    }
+    
+    function getDaysInMonth(year, month) {
+        return new Date(year, month + 1, 0).getDate();
+    }
+    
+    function createCalendar(year, month, containerId, isMini = false) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+    
+        container.innerHTML = '';
+        const firstDay = getFirstDayOfMonth(year, month);
+        const daysInMonth = getDaysInMonth(year, month);
+    
+        if (isMini) {
+            let html = '<table><tr>';
+    
+            ['S', 'S', 'R', 'K', 'J', 'S', 'M'].forEach((day, index) => {
+                html += `<td class="${index === 5 || index === 6 ? 'sunday' : ''}">${day}</td>`;
+            });
+            html += '</tr>';
+    
+            let dayCount = 1;
+            for (let week = 0; week < 6; week++) {
+                html += '<tr>';
+                for (let day = 0; day < 7; day++) {
+                    if ((week === 0 && day < firstDay) || dayCount > daysInMonth) {
+                        html += '<td></td>';
+                    } else {
+                        const isWeekend = day === 5 || day === 6;
+                        html += `<td class="${isWeekend ? 'sunday' : ''}">${dayCount}</td>`;
+                        dayCount++;
+                    }
+                }
+                html += '</tr>';
+                if (dayCount > daysInMonth) break;
+            }
+    
+            html += '</table>';
+            container.innerHTML = html;
+        } else {
+            DAYS.slice(1).concat(DAYS[0]).forEach((day, index) => {
+                const div = document.createElement('div');
+                div.className = `weekday-header ${index === 5 || index === 6 ? 'sunday-header' : ''}`;
+                div.style.cssText = 'writing-mode: vertical-lr; text-orientation: upright; font-weight: bold; height: 150px;';
+                div.textContent = day;
+                container.appendChild(div);
+            });
+    
+            let startDay = firstDay === 0 ? 6 : firstDay - 1;
+            for (let i = 0; i < startDay; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'calendar-day empty';
+                container.appendChild(emptyDiv);
+            }
+    
+            for (let date = 1; date <= daysInMonth; date++) {
+                const dayOfWeek = new Date(year, month, date).getDay();
+                const div = document.createElement('div');
+                div.className = 'calendar-day';
+    
+                const dateDiv = document.createElement('div');
+                dateDiv.className = `date ${dayOfWeek === 0 || dayOfWeek === 6 ? 'sunday' : ''}`;
+                dateDiv.textContent = date;
+    
+                div.appendChild(dateDiv);
+                container.appendChild(div);
+            }
+    
+            const endEmptyCells = (7 - ((startDay + daysInMonth) % 7)) % 7;
+            for (let i = 0; i < endEmptyCells; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'calendar-day empty';
+                container.appendChild(emptyDiv);
+            }
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentYear = 2025;
+        const currentMonth = 2; // March (0-based)
+        createCalendar(currentYear, currentMonth, 'mainCalendar');
+        createCalendar(currentYear, currentMonth - 1, 'febCalendar', true);
+        createCalendar(currentYear, currentMonth + 1, 'aprCalendar', true);
+    });
+</script>
+    
+{% endblock %}
