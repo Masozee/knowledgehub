@@ -266,7 +266,7 @@ AI_SERVICES = {
     },
 }
 
-# CKEditor Configuration
+# CKEtor Configuration
 customColorPalette = [
     {'color': 'hsl(4, 90%, 58%)', 'label': 'Red'},
     {'color': 'hsl(340, 82%, 52%)', 'label': 'Pink'},

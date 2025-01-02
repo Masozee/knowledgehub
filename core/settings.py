@@ -57,7 +57,6 @@ THIRD_PARTY_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'taggit',
-    'ckeditor',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
@@ -268,10 +267,12 @@ LOGGING = {
             'handlers': ['null'],
             'propagate': False,
         },
+
         'django.contrib.admin': {  # Add this to handle admin-specific logs
             'handlers': ['null'],
             'propagate': False,
         },
+
     },
 }
 
