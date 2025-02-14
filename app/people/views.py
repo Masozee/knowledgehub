@@ -12,6 +12,10 @@ import os
 import requests
 import logging
 from .models import *
+from django.views.generic import DetailView
+from django.shortcuts import get_object_or_404
+from app.publications.models import Publication
+from app.events.models import *
 
 
 
@@ -236,3 +240,25 @@ def backup_photos(request):
         messages.error(request, message)
 
     return redirect('/admin/people/photobackup/')
+
+
+class PersonDetailView(DetailView):
+    model = Person
+    template_name = 'dashboard/srm/person_detail.html'
+    context_object_name = 'person'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        person = self.object
+
+        # Get all events where this person was a speaker
+        context['speaking_events'] = Speaker.objects.filter(
+            person=person
+        ).select_related('event').order_by('-speaking_slot_start')[:5]
+
+        # Add latest publications
+        context['publications'] = Publication.objects.filter(
+            authors=person
+        ).order_by('-date_publish')[:5]
+
+        return context

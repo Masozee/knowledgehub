@@ -437,3 +437,39 @@ class ProjectExpenseAdmin(admin.ModelAdmin):
             elif obj.status == 'SUBMITTED':
                 obj.submitted_date = timezone.now()
         super().save_model(request, obj, form, change)
+
+
+@admin.register(ResearchData)
+class ResearchDataAdmin(admin.ModelAdmin):
+    list_display = ('title', 'data_type', 'collection_date', 'responsible_person', 'get_file_link')
+    list_filter = ('data_type', 'collection_date', 'responsible_person')
+    search_fields = ('title', 'description', 'methodology', 'responsible_person__username')
+    date_hierarchy = 'collection_date'
+
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'project', 'data_type', 'collection_date')
+        }),
+        ('Data Information', {
+            'fields': ('description', 'methodology', 'storage_location', 'file')
+        }),
+        ('Additional Information', {
+            'fields': ('metadata', 'responsible_person')
+        }),
+
+    )
+
+    def get_file_link(self, obj):
+        if obj.file:
+            return format_html('<a href="{}">Download</a>', obj.file.url)
+        return '-'
+
+    get_file_link.short_description = 'File'
+
+    def save_model(self, request, obj, form, change):
+        if not obj.responsible_person:
+            obj.responsible_person = request.user
+        super().save_model(request, obj, form, change)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('project', 'responsible_person')

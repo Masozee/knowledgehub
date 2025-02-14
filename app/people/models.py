@@ -1,5 +1,4 @@
 # people/models.py
-
 from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
@@ -7,7 +6,7 @@ from django.conf import settings
 # models.py
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractUser, Group, Permission, User, BaseUserManager
-
+from app.config.models import *
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -25,7 +24,6 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('user_type', 'staff')  # Default type for superuser
         return self.create_user(email, password, **extra_fields)
-
 
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = (
@@ -128,9 +126,14 @@ class Person(models.Model):
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=20, blank=True)
     address = models.TextField(blank=True)
+    extension = models.CharField(max_length=4, blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+    def get_full_name(self):
+        """Returns the person's full name."""
+        return f"{self.first_name} {self.last_name}".strip()
 
     def get_avatar_color(self):
         colors = ['primary', 'success', 'warning', 'purple', 'danger', 'info', 'dark']
@@ -157,14 +160,15 @@ class Relationship(models.Model):
 class Staff(models.Model):
     person = models.OneToOneField(Person, on_delete=models.CASCADE)
     employee_id = models.CharField(max_length=20, unique=True)
-    department = models.CharField(max_length=100)
+    category = models.ForeignKey(Option, limit_choices_to={'category': 5},on_delete=models.CASCADE)
+    department = models.ForeignKey(Option, limit_choices_to={'category': 6},on_delete=models.CASCADE, related_name='departments')
     position = models.CharField(max_length=100)
     hire_date = models.DateField()
+    is_active = models.BooleanField(default=True)
 
 
     def __str__(self):
         return f"{self.person} - {self.position}"
-
 
 class PhotoBackup(models.Model):
     STATUS_CHOICES = (

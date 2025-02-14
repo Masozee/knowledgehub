@@ -8,14 +8,14 @@ from app.people.models import CustomUser
 class Asset(models.Model):
     name = models.CharField(max_length=200)
     asset_id = models.CharField(max_length=50, unique=True)
-    category = models.ForeignKey(OptionConfig ,limit_choices_to={'category':'1'}, on_delete=models.CASCADE)
+    category = models.ForeignKey(OptionConfig , on_delete=models.CASCADE)
     purchase_date = models.DateField()
     purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
     warranty_expiration = models.DateField(null=True, blank=True)
     image = models.ImageField(upload_to='assets/', null=True, blank=True)
     location = models.CharField(max_length=200)
     current_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    status = models.ForeignKey(OptionConfig ,limit_choices_to={'category':'2'}, on_delete=models.CASCADE, related_name='asset_status')
+    status = models.ForeignKey(OptionConfig ,on_delete=models.CASCADE, related_name='asset_status')
 
     def __str__(self):
         return f"{self.name} ({self.asset_id})"
@@ -26,7 +26,7 @@ class Asset(models.Model):
 
 class Maintenance(models.Model):
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='maintenance_records')
-    maintenance_type = models.ForeignKey(OptionConfig ,limit_choices_to={'category':'3'}, on_delete=models.CASCADE, related_name='maintenance_type')
+    maintenance_type = models.ForeignKey(OptionConfig , on_delete=models.CASCADE, related_name='maintenance_type')
     maintenance_date = models.DateField()
     next_maintenance_date = models.DateField(null=True, blank=True)
     cost = models.DecimalField(max_digits=10, decimal_places=2)

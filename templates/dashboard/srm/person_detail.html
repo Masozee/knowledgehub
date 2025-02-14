@@ -1,0 +1,179 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="nk-content">
+    <div class="container wide-xl">
+        <div class="nk-content-inner">
+            <div class="nk-content-body">
+                <div class="nk-block-head nk-block-head-sm">
+                    <div class="nk-block-between g-3">
+                        <div class="nk-block-head-content">
+                            <h3 class="nk-block-title page-title">Person Details</h3>
+                            <div class="nk-block-des text-soft">
+                                <p>{{ person.get_full_name }}</p>
+                            </div>
+                        </div>
+                        <div class="nk-block-head-content">
+                            <a href="{% url 'web:index-srm' %}" class="btn btn-outline-light bg-white d-none d-sm-inline-flex">
+                                <em class="icon ni ni-arrow-left"></em><span>Back</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nk-block">
+                    <div class="row g-gs">
+                        <!-- Left Column - Profile Info -->
+                        <div class="col-xl-4">
+                            <div class="card card-bordered">
+                                <div class="card-inner-group">
+                                    <div class="card-inner">
+                                        <div class="user-card user-card-s2">
+                                            {% if person.image %}
+                                                <div class="user-avatar lg bg-primary">
+                                                    <img src="{{ person.image.url }}" alt="">
+                                                </div>
+                                            {% else %}
+                                                <div class="user-avatar lg bg-{{ person.get_avatar_color }}">
+                                                    <span>{{ person.get_initials }}</span>
+                                                </div>
+                                            {% endif %}
+                                            <div class="user-info">
+                                                {% for org in person.organization.all %}
+                                                    <div class="badge bg-light rounded-pill ucap">{{ org.name }}</div>
+                                                {% endfor %}
+                                                <h5>{{ person.get_full_name }}</h5>
+                                                <span class="sub-text">{{ person.email }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card-inner">
+                                        <div class="row g-3">
+                                            <div class="col-sm-6 col-xl-12">
+                                                <span class="sub-text">Email:</span>
+                                                <span>{{ person.email }}</span>
+                                            </div>
+                                            {% if person.phone_number %}
+                                            <div class="col-sm-6 col-xl-12">
+                                                <span class="sub-text">Phone:</span>
+                                                <span>{{ person.phone_number }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% if person.extension %}
+                                            <div class="col-sm-6 col-xl-12">
+                                                <span class="sub-text">Extension:</span>
+                                                <span>{{ person.extension }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% if person.address %}
+                                            <div class="col-sm-6 col-xl-12">
+                                                <span class="sub-text">Address:</span>
+                                                <span>{{ person.address }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% if person.date_of_birth %}
+                                            <div class="col-sm-6 col-xl-12">
+                                                <span class="sub-text">Date of Birth:</span>
+                                                <span>{{ person.date_of_birth }}</span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    {% if person.organization.exists %}
+                                    <div class="card-inner">
+                                        <h6 class="overline-title mb-2">Organizations</h6>
+                                        {% for org in person.organization.all %}
+                                        <div class="row g-3">
+                                            <div class="col-sm-6 col-xl-12">
+                                                <div class="user-card">
+                                                    {% if org.logo %}
+                                                    <div class="user-avatar sm bg-light">
+                                                        <img src="{{ org.logo.url }}" alt="{{ org.name }}">
+                                                    </div>
+                                                    {% else %}
+                                                    <div class="user-avatar sm bg-light">
+                                                        <span>{{ org.name|slice:":2" }}</span>
+                                                    </div>
+                                                    {% endif %}
+                                                    <div class="user-info">
+                                                        <span class="lead-text">{{ org.name }}</span>
+                                                        {% if org.address %}
+                                                        <span class="sub-text">{{ org.address }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column - Events & Activities -->
+                        <div class="col-xl-8">
+                            <div class="card card-bordered">
+                                <div class="card-inner">
+                                    <!-- Speaking Events Section -->
+                                    <div class="nk-block">
+                                        <h6 class="lead-text mb-3">Speaking Events</h6>
+                                        <div class="nk-tb-list nk-tb-ulist is-compact">
+                                            <div class="nk-tb-item nk-tb-head">
+                                                <div class="nk-tb-col"><span>Event</span></div>
+                                                <div class="nk-tb-col tb-col-md"><span>Date</span></div>
+                                                <div class="nk-tb-col tb-col-sm"><span>Role</span></div>
+                                                <div class="nk-tb-col"><span>Status</span></div>
+                                            </div>
+                                            {% for speaking in speaking_events %}
+                                            <div class="nk-tb-item">
+                                                <div class="nk-tb-col">
+                                                    <span class="fw-bold">{{ speaking.event.title }}</span>
+                                                </div>
+                                                <div class="nk-tb-col tb-col-md">
+                                                    <span>{{ speaking.speaking_slot_start|date }}</span>
+                                                </div>
+                                                <div class="nk-tb-col tb-col-sm">
+                                                    <span>{{ speaking.get_speaker_type_display }}</span>
+                                                </div>
+                                                <div class="nk-tb-col">
+                                                    <span class="badge badge-dim 
+                                                        {% if speaking.event.status == 'published' %}bg-success
+                                                        {% elif speaking.event.status == 'draft' %}bg-warning
+                                                        {% elif speaking.event.status == 'cancelled' %}bg-danger
+                                                        {% else %}bg-info{% endif %}">
+                                                        {{ speaking.event.status|title }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {% empty %}
+                                            <div class="nk-tb-item">
+                                                <div class="nk-tb-col text-center" colspan="4">
+                                                    <span class="text-soft">No speaking events found</span>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+
+                                    
+                                    <!-- Publications Section - if person is a writer -->
+                                    <div class="nk-block mt-5">
+                                        <h6 class="lead-text mb-3">Publications</h6>
+                                        <!-- Add publications list here once you have the Publication model -->
+                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus dolorem est eum illo, in molestiae rerum similique totam vero voluptate. Ex impedit necessitatibus rerum vel. Debitis harum impedit quisquam temporibus.
+                                    </div>
+                                  
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

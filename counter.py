@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import pathspec  # for handling .gitignore patterns
+import sys
 
 
 def get_gitignore_spec(project_path):
@@ -17,12 +18,13 @@ def get_gitignore_spec(project_path):
     return spec
 
 
-def count_lines_in_project(project_path):
+def count_lines_in_project(project_path, file_type=None):
     """
     Count lines in Django project files, excluding .venv and .gitignore patterns.
 
     Args:
         project_path (str): Path to Django project root directory
+        file_type (str): Specific file type to count ('py', 'html', 'css', 'js', or None for all)
 
     Returns:
         dict: Dictionary containing line counts by file type and total count
@@ -34,6 +36,15 @@ def count_lines_in_project(project_path):
         '.css': 'CSS',
         '.js': 'JavaScript'
     }
+
+    # Filter extensions based on file_type parameter
+    if file_type:
+        file_type = '.' + file_type.lower()
+        if file_type in extensions:
+            filtered_extensions = {file_type: extensions[file_type]}
+            extensions = filtered_extensions
+        else:
+            raise ValueError(f"Unsupported file type: {file_type}")
 
     # Initialize counters
     counts = {ext_name: 0 for ext_name in extensions.values()}
@@ -48,27 +59,19 @@ def count_lines_in_project(project_path):
 
     def should_skip_path(path):
         """Check if path should be skipped"""
-        # Convert to relative path for gitignore matching
         rel_path = str(Path(path).relative_to(project_path))
-
-        # Skip .venv directory
         if '.venv' in Path(path).parts:
             return True
-
-        # Skip paths matched by .gitignore
         if gitignore_spec and gitignore_spec.match_file(rel_path):
             return True
-
         return False
 
     # Walk through project directory
     for root, dirs, files in os.walk(project_path):
-        # Skip unwanted directories
         if should_skip_path(root):
-            dirs.clear()  # Prevent descending into skipped directories
+            dirs.clear()
             continue
 
-        # Filter out files that should be skipped
         files = [f for f in files if not should_skip_path(Path(root) / f)]
 
         for file in files:
@@ -78,7 +81,7 @@ def count_lines_in_project(project_path):
             if ext in extensions:
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
-                        lines = sum(1 for line in f if line.strip())  # Count non-empty lines
+                        lines = sum(1 for line in f if line.strip())
                         file_type = extensions[ext]
                         counts[file_type] += lines
                         counts['Total'] += lines
@@ -105,11 +108,16 @@ def format_report(counts, file_counts):
 
 
 def main():
-    # Get the current working directory as the default project path
     project_path = os.getcwd()
+    file_type = None
+
+    # Parse command line arguments
+    if len(sys.argv) > 1:
+        if sys.argv[1] in ['py_only', 'html_only', 'css_only', 'js_only']:
+            file_type = sys.argv[1].split('_')[0]
 
     try:
-        counts, file_counts = count_lines_in_project(project_path)
+        counts, file_counts = count_lines_in_project(project_path, file_type)
         report = format_report(counts, file_counts)
         print(report)
     except Exception as e:

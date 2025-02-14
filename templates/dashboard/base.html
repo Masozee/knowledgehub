@@ -217,6 +217,9 @@
                                             </div>
                                         </div>
                                     </li><!-- .dropdown -->
+                                    <li class="d-lg-none">
+                                        <a href="#" class="toggle nk-quick-nav-icon me-n1" data-target="sideNav"><em class="icon ni ni-menu"></em></a>
+                                    </li>
                                 </ul><!-- .nk-quick-nav -->
                             </div><!-- .nk-header-tools -->
                         </div><!-- .nk-header-wrap -->
@@ -301,12 +304,6 @@
                                             </a>
                                         </li><!-- .nk-menu-item -->
                                         <li class="nk-menu-item">
-                                            <a href="{% url 'publications:index' %}" class="nk-menu-link">
-                                                <span class="nk-menu-icon"><em class="icon ni ni-article"></em></span>
-                                                <span class="nk-menu-text">News</span>
-                                            </a>
-                                        </li><!-- .nk-menu-item -->
-                                        <li class="nk-menu-item">
                                             <a href="{% url 'events:event_list' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-calendar-booking"></em></span>
                                                 <span class="nk-menu-text">Event Management</span>
@@ -325,6 +322,26 @@
                                                 <span class="nk-menu-text">Data Warehouse</span>
 
                                             </a>
+                                        </li><!-- .nk-menu-item -->
+                                        <li class="nk-menu-item has-sub">
+                                            <a href="#" class="nk-menu-link nk-menu-toggle">
+                                                <span class="nk-menu-icon"><em class="icon ni ni-cc-new"></em></span>
+                                                <span class="nk-menu-text">AI Hub</span>
+                                            </a>
+                                            <ul class="nk-menu-sub">
+                                                <li class="nk-menu-item">
+                                                    <a href="{% url 'tools:chatlist' %}" class="nk-menu-link"><span class="nk-menu-text">Chat</span></a>
+                                                </li>
+                                                <li class="nk-menu-item">
+                                                    <a href="html/user-list-compact.html" class="nk-menu-link"><span class="nk-menu-text">Note Taking</span></a>
+                                                </li>
+                                                <li class="nk-menu-item">
+                                                    <a href="html/user-details-regular.html" class="nk-menu-link"><span class="nk-menu-text">Speech Generator</span></a>
+                                                </li>
+                                                <li class="nk-menu-item">
+                                                    <a href="html/user-profile-regular.html" class="nk-menu-link"><span class="nk-menu-text">Transcription</span></a>
+                                                </li>
+                                            </ul><!-- .nk-menu-sub -->
                                         </li><!-- .nk-menu-item -->
 
 
@@ -365,26 +382,7 @@
                                                 </li>
                                             </ul><!-- .nk-menu-sub -->
                                         </li><!-- .nk-menu-item -->
-                                        <li class="nk-menu-item has-sub">
-                                            <a href="#" class="nk-menu-link nk-menu-toggle">
-                                                <span class="nk-menu-icon"><em class="icon ni ni-cc-new"></em></span>
-                                                <span class="nk-menu-text">AI Hub</span>
-                                            </a>
-                                            <ul class="nk-menu-sub">
-                                                <li class="nk-menu-item">
-                                                    <a href="{% url 'tools:chatlist' %}" class="nk-menu-link"><span class="nk-menu-text">Chat</span></a>
-                                                </li>
-                                                <li class="nk-menu-item">
-                                                    <a href="html/user-list-compact.html" class="nk-menu-link"><span class="nk-menu-text">Note Taking</span></a>
-                                                </li>
-                                                <li class="nk-menu-item">
-                                                    <a href="html/user-details-regular.html" class="nk-menu-link"><span class="nk-menu-text">Speech Generator</span></a>
-                                                </li>
-                                                <li class="nk-menu-item">
-                                                    <a href="html/user-profile-regular.html" class="nk-menu-link"><span class="nk-menu-text">Transcription</span></a>
-                                                </li>
-                                            </ul><!-- .nk-menu-sub -->
-                                        </li><!-- .nk-menu-item -->
+
 
                                         <li class="nk-menu-item has-sub">
                                             <a href="#" class="nk-menu-link nk-menu-toggle">
@@ -428,10 +426,10 @@
                                             </a>
                                             <ul class="nk-menu-sub">
                                                 <li class="nk-menu-item">
-                                                    <a href="html/product-list.html" class="nk-menu-link"><span class="nk-menu-text">E-Library</span></a>
+                                                    <a href="https://elibrary.csis.or.id" class="nk-menu-link"><span class="nk-menu-text">E-Library</span></a>
                                                 </li>
                                                 <li class="nk-menu-item">
-                                                    <a href="html/product-card.html" class="nk-menu-link"><span class="nk-menu-text">Library</span></a>
+                                                    <a href="http://192.168.0.253" class="nk-menu-link"><span class="nk-menu-text">Library</span></a>
                                                 </li>
                                                 <li class="nk-menu-item">
                                                     <a href="html/product-details.html" class="nk-menu-link"><span class="nk-menu-text">Subscriptions</span></a>
@@ -445,6 +443,21 @@
                                                 <li class="nk-menu-item">
                                                     <a href="html/product-details.html" class="nk-menu-link"><span class="nk-menu-text">Audio File</span></a>
                                                 </li>
+                                            </ul><!-- .nk-menu-sub -->
+                                        </li><!-- .nk-menu-item -->
+                                        <li class="nk-menu-item has-sub">
+                                            <a href="#" class="nk-menu-link nk-menu-toggle">
+                                                <span class="nk-menu-icon"><em class="icon ni ni-file-plus"></em></span>
+                                                <span class="nk-menu-text">Document and<br>Archive</span>
+                                            </a>
+                                            <ul class="nk-menu-sub">
+                                                <li class="nk-menu-item">
+                                                    <a href="html/product-list.html" class="nk-menu-link"><span class="nk-menu-text">Document Number</span></a>
+                                                </li>
+                                                <li class="nk-menu-item">
+                                                    <a href="html/product-card.html" class="nk-menu-link"><span class="nk-menu-text">Archive</span></a>
+                                                </li>
+                                                
                                             </ul><!-- .nk-menu-sub -->
                                         </li><!-- .nk-menu-item -->
                                         <li class="nk-menu-item">

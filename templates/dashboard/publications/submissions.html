@@ -1,0 +1,369 @@
+{% extends 'dashboard/publications/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="nk-content-body">
+    <div class="nk-content-wrap">
+        <div class="nk-block-head nk-block-head-sm">
+            <div class="nk-block-between">
+                <div class="nk-block-head-content">
+                    <h3 class="nk-block-title page-title">Publication Submissions</h3>
+                    <div class="nk-block-des text-soft">
+                        <p>Review and manage publication submissions.</p>
+                    </div>
+                </div>
+                <div class="nk-block-head-content">
+                    <div class="toggle-wrap nk-block-tools-toggle">
+                        <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu">
+                            <em class="icon ni ni-more-v"></em>
+                        </a>
+                        <div class="toggle-expand-content" data-content="pageMenu">
+                            <ul class="nk-block-tools g-3">
+                                <li class="nk-block-tools-opt">
+                                    <div class="drodown">
+                                        <a href="#" class="dropdown-toggle btn btn-icon btn-primary" data-bs-toggle="dropdown">
+                                            <em class="icon ni ni-plus"></em>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-end">
+                                            <ul class="link-list-opt no-bdr">
+                                                <li>
+                                                    <a href="{% url 'admin:publications_publication_add' %}">
+                                                        <em class="icon ni ni-file-plus"></em>
+                                                        <span>Add Publication</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" data-bs-toggle="modal" data-bs-target="#importPublications">
+                                                        <em class="icon ni ni-upload-cloud"></em>
+                                                        <span>Import Publications</span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nk-block">
+            <div class="card card-bordered card-stretch">
+                <div class="card-inner-group">
+                    <div class="card-inner position-relative">
+                        <div class="card-title-group">
+                            <div class="card-tools">
+                                <div class="form-inline flex-nowrap gx-3">
+                                    <div class="form-wrap w-150px">
+                                        <select class="form-select js-select2" data-search="off" data-placeholder="Bulk Action">
+                                            <option value="">Bulk Action</option>
+                                            <option value="publish">Publish</option>
+                                            <option value="archive">Archive</option>
+                                            <option value="delete">Delete</option>
+                                        </select>
+                                    </div>
+                                    <div class="btn-wrap">
+                                        <span class="d-none d-md-block"><button class="btn btn-dim btn-outline-light">Apply</button></span>
+                                        <span class="d-md-none"><button class="btn btn-dim btn-outline-light btn-icon"><em class="icon ni ni-arrow-right"></em></button></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-tools me-n1">
+                                <ul class="btn-toolbar gx-1">
+                                    <li>
+                                        <a href="#" class="btn btn-icon search-toggle toggle-search" data-target="search">
+                                            <em class="icon ni ni-search"></em>
+                                        </a>
+                                    </li>
+                                    <li class="btn-toolbar-sep"></li>
+                                    <li>
+                                        <div class="toggle-wrap">
+                                            <a href="#" class="btn btn-icon btn-trigger toggle" data-target="cardTools">
+                                                <em class="icon ni ni-menu-right"></em>
+                                            </a>
+                                            <div class="toggle-content" data-content="cardTools">
+                                                <ul class="btn-toolbar gx-1">
+                                                    <li class="toggle-close">
+                                                        <a href="#" class="btn btn-icon btn-trigger toggle" data-target="cardTools">
+                                                            <em class="icon ni ni-arrow-left"></em>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <div class="dropdown">
+                                                            <a href="#" class="btn btn-trigger btn-icon dropdown-toggle" data-bs-toggle="dropdown">
+                                                                <div class="dot dot-primary"></div>
+                                                                <em class="icon ni ni-filter-alt"></em>
+                                                            </a>
+                                                            <div class="filter-wg dropdown-menu dropdown-menu-xl dropdown-menu-end">
+                                                                <div class="dropdown-head">
+                                                                    <span class="sub-title dropdown-title">Filter Submissions</span>
+                                                                </div>
+                                                                <div class="dropdown-body dropdown-body-rg">
+                                                                    <div class="row gx-6 gy-3">
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="overline-title overline-title-alt">Status</label>
+                                                                                <select class="form-select js-select2">
+                                                                                    <option value="any">Any Status</option>
+                                                                                    <option value="draft">Draft</option>
+                                                                                    <option value="archived">Archived</option>
+                                                                                </select>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-6">
+                                                                            <div class="form-group">
+                                                                                <label class="overline-title overline-title-alt">Category</label>
+                                                                                <select class="form-select js-select2">
+                                                                                    <option value="any">Any Category</option>
+                                                                                    {% for category in categories %}
+                                                                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                                                                    {% endfor %}
+                                                                                </select>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="dropdown-foot between">
+                                                                    <a class="clickable" href="#">Reset Filter</a>
+                                                                    <a href="#">Filter</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    <li>
+                                                        <div class="dropdown">
+                                                            <a href="#" class="btn btn-trigger btn-icon dropdown-toggle" data-bs-toggle="dropdown">
+                                                                <em class="icon ni ni-setting"></em>
+                                                            </a>
+                                                            <div class="dropdown-menu dropdown-menu-xs dropdown-menu-end">
+                                                                <ul class="link-check">
+                                                                    <li><span>Show</span></li>
+                                                                    <li class="active"><a href="#">10</a></li>
+                                                                    <li><a href="#">20</a></li>
+                                                                    <li><a href="#">50</a></li>
+                                                                </ul>
+                                                                <ul class="link-check">
+                                                                    <li><span>Order</span></li>
+                                                                    <li class="active"><a href="#">DESC</a></li>
+                                                                    <li><a href="#">ASC</a></li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-search search-wrap" data-search="search">
+                            <div class="card-body">
+                                <div class="search-content">
+                                    <a href="#" class="search-back btn btn-icon toggle-search" data-target="search">
+                                        <em class="icon ni ni-arrow-left"></em>
+                                    </a>
+                                    <input type="text" class="form-control border-transparent form-focus-none" placeholder="Search by title or author">
+                                    <button class="search-submit btn btn-icon">
+                                        <em class="icon ni ni-search"></em>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-inner p-0">
+                        <div class="nk-tb-list nk-tb-ulist">
+                            <div class="nk-tb-item nk-tb-head">
+                                <div class="nk-tb-col nk-tb-col-check">
+                                    <div class="custom-control custom-control-sm custom-checkbox notext">
+                                        <input type="checkbox" class="custom-control-input" id="uid">
+                                        <label class="custom-control-label" for="uid"></label>
+                                    </div>
+                                </div>
+                                <div class="nk-tb-col"><span class="sub-text">Title</span></div>
+                                <div class="nk-tb-col tb-col-mb"><span class="sub-text">Authors</span></div>
+                                <div class="nk-tb-col tb-col-md"><span class="sub-text">Category</span></div>
+                                <div class="nk-tb-col tb-col-lg"><span class="sub-text">Status</span></div>
+                                <div class="nk-tb-col tb-col-md"><span class="sub-text">Submitted</span></div>
+                                <div class="nk-tb-col nk-tb-col-tools text-end">
+                                    <div class="dropdown">
+                                        <a href="#" class="btn btn-xs btn-outline-light btn-icon dropdown-toggle" data-bs-toggle="dropdown" data-offset="0,5">
+                                            <em class="icon ni ni-plus"></em>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% for submission in submissions %}
+                            <div class="nk-tb-item">
+                                <div class="nk-tb-col nk-tb-col-check">
+                                    <div class="custom-control custom-control-sm custom-checkbox notext">
+                                        <input type="checkbox" class="custom-control-input" id="uid{{ submission.id }}">
+                                        <label class="custom-control-label" for="uid{{ submission.id }}"></label>
+                                    </div>
+                                </div>
+                                <div class="nk-tb-col">
+                                    <a href="{% url 'publications:publication-detail' submission.slug %}">
+                                        <div class="user-card">
+                                            <div class="user-info">
+                                                <span class="tb-lead">{{ submission.title|truncatechars:50 }}</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="nk-tb-col tb-col-mb">
+                                    <span class="tb-amount">{{ submission.get_author_list|join:", "|truncatechars:30 }}</span>
+                                </div>
+                                <div class="nk-tb-col tb-col-md">
+                                    <span>{{ submission.category.name|default:"-" }}</span>
+                                </div>
+                                <div class="nk-tb-col tb-col-lg">
+                                    <span class="badge badge-dim {% if submission.status == 'draft' %}bg-warning{% else %}bg-gray{% endif %}">
+                                        {{ submission.get_status_display }}
+                                    </span>
+                                </div>
+                                <div class="nk-tb-col tb-col-md">
+                                    <span>{{ submission.created_at|date:"d M Y" }}</span>
+                                </div>
+                                <div class="nk-tb-col nk-tb-col-tools">
+                                    <ul class="nk-tb-actions gx-1">
+                                        {% if submission.status == 'draft' %}
+                                        <li class="nk-tb-action-hidden">
+                                            <a href="#" class="btn btn-trigger btn-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Publish">
+                                                <em class="icon ni ni-check-circle"></em>
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                        <li class="nk-tb-action-hidden">
+                                            <a href="{% url 'admin:publications_publication_change' submission.id %}" class="btn btn-trigger btn-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                                <em class="icon ni ni-edit-alt"></em>
+                                            </a>
+                                        </li>
+                                        <li class="nk-tb-action-hidden">
+                                            <a href="#" class="btn btn-trigger btn-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete">
+                                                <em class="icon ni ni-trash"></em>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <div class="drodown">
+                                                <a href="#" class="dropdown-toggle btn btn-icon btn-trigger" data-bs-toggle="dropdown">
+                                                    <em class="icon ni ni-more-h"></em>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <ul class="link-list-opt no-bdr">
+                                                        <li>
+                                                            <a href="{% url 'publications:publication-detail' submission.slug %}">
+                                                                <em class="icon ni ni-eye"></em>
+                                                                <span>View Details</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="{% url 'admin:publications_publication_change' submission.id %}">
+                                                                <em class="icon ni ni-edit"></em>
+                                                                <span>Edit</span>
+                                                            </a>
+                                                        </li>
+                                                        {% if submission.status == 'draft' %}
+                                                        <li>
+                                                            <a href="#">
+                                                                <em class="icon ni ni-check-circle"></em>
+                                                                <span>Publish</span>
+                                                            </a>
+                                                        </li>
+                                                        {% endif %}
+                                                        <li>
+                                                            <a href="#" class="text-danger">
+                                                                <em class="icon ni ni-trash"></em>
+                                                                <span>Delete</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="nk-tb-item">
+                                <div class="nk-tb-col text-center" colspan="7">
+                                    <span class="text-muted">No submissions found</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% if is_paginated %}
+                    <div class="card-inner">
+                        <div class="nk-block-between-md g-3">
+                            <div class="g">
+                                {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}" 
+                                   class="btn btn-white btn-dim btn-sm">
+                                    <em class="icon ni ni-chevron-left"></em>
+                                    <span>Previous</span>
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div class="g">
+                                <div class="pagination-goto d-flex justify-content-center justify-content-md-start gx-3">
+                                    <div>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
+                                </div>
+                            </div>
+                            <div class="g">
+                                {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}" 
+                                   class="btn btn-white btn-dim btn-sm">
+                                    <span>Next</span>
+                                    <em class="icon ni ni-chevron-right"></em>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importPublications" tabindex="-1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Publications</h5>
+                <a href="#" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <em class="icon ni ni-cross"></em>
+                </a>
+            </div>
+            <div class="modal-body">
+                <form action="#" method="post" enctype="multipart/form-data" class="form-validate">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label">Import File</label>
+                        <div class="form-control-wrap">
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="importFile" name="import_file" accept=".csv, .xlsx">
+                                <label class="custom-file-label" for="importFile">Choose file</label>
+                            </div>
+                        </div>
+                        <div class="form-note">Supported formats: CSV, Excel</div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-primary">Import Data</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'dashboard/assets/js/charts/gd-default.js' %}"></script>
+{% endblock %}

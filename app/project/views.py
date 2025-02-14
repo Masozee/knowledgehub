@@ -1,11 +1,10 @@
+from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView, TemplateView, CreateView, UpdateView, DeleteView, View
-
 from django.db.models.functions import Lower, Substr, Concat
 from django.db.models import CharField, Count, Q, Prefetch
 from django.db import transaction
-
+from django.core.exceptions import PermissionDenied
 from .forms import *
-
 from django.views.decorators.csrf import csrf_protect
 import json
 from app.project.mixins import *
@@ -17,6 +16,10 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
 from .models import Project, ProjectMember
+from app.publications.models import Publication
+from app.events.models import Event, Speaker
+from django.shortcuts import render
+
 
 
 class PermissionMixin:
@@ -215,7 +218,6 @@ def mark_project_complete(request, uuid):
             'error': str(e)
         }, status=500)
 
-
 class ProjectDetailView(LoginRequiredMixin, DetailView):
     model = Project
     template_name = 'dashboard/project/detail.html'
@@ -324,7 +326,6 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
                 messages.error(self.request, f'{field}: {error}')
         return super().form_invalid(form)
 
-
 class ProjectUpdateView(LoginRequiredMixin, UpdateView):
     model = Project
     template_name = 'dashboard/project/create.html'
@@ -336,7 +337,6 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
-
 
 class TaskKanbanView(LoginRequiredMixin, ListView):
     model = Task
@@ -450,7 +450,6 @@ class TaskKanbanView(LoginRequiredMixin, ListView):
         })
         return context
 
-
 class TaskListView(LoginRequiredMixin, ListView):
     model = Task
     template_name = 'dashboard/project/task_list.html'
@@ -470,7 +469,6 @@ class TaskListView(LoginRequiredMixin, ListView):
         context['task_stats'] = self.project.get_task_stats()
         context['can_create'] = self.project.can_user_edit(self.request.user)
         return context
-
 
 class TaskCreateView(LoginRequiredMixin, PermissionMixin, CreateView):
     model = Task
@@ -496,7 +494,6 @@ class TaskCreateView(LoginRequiredMixin, PermissionMixin, CreateView):
         context['project'] = self.project
         context['action'] = 'Create'
         return context
-
 
 class TaskUpdateView(LoginRequiredMixin, PermissionMixin, UpdateView):
     model = Task
@@ -530,7 +527,6 @@ class TaskUpdateView(LoginRequiredMixin, PermissionMixin, UpdateView):
         context['action'] = 'Update'
         return context
 
-
 class TaskDeleteView(LoginRequiredMixin, PermissionMixin, DeleteView):
     model = Task
     template_name = 'dashboard/project/task_confirm_delete.html'
@@ -556,7 +552,6 @@ class TaskDeleteView(LoginRequiredMixin, PermissionMixin, DeleteView):
         context = super().get_context_data(**kwargs)
         context['project'] = self.object.project
         return context
-
 
 class TaskDetailView(LoginRequiredMixin, DetailView):
     model = Task
@@ -603,7 +598,6 @@ class TaskDetailView(LoginRequiredMixin, DetailView):
         })
         return context
 
-
 class ProjectFundUsageView(DetailView):
     template_name = 'dashboard/project/fund_usage.html'
     context_object_name = 'project'
@@ -626,7 +620,6 @@ class ProjectFundUsageView(DetailView):
 
         return context
 
-
 class ProjectTeamView(LoginRequiredMixin, ListView):
     template_name = 'dashboard/project/member.html'
     context_object_name = 'team_members'
@@ -640,7 +633,6 @@ class ProjectTeamView(LoginRequiredMixin, ListView):
         context['project'] = self.project
         context['available_roles'] = ProjectMember._meta.get_field('role').choices
         return context
-
 
 class InviteMemberView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = ProjectMember
@@ -664,6 +656,279 @@ class InviteMemberView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def get_success_url(self):
         return reverse_lazy('project:team', kwargs={'project_uuid': self.project.uuid})
+
+class ProjectOutreachView(LoginRequiredMixin, ListView):
+    template_name = 'dashboard/project/outreach.html'
+    context_object_name = 'outreach_items'
+    paginate_by = 10
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.project = get_object_or_404(
+                Project.objects.select_related('created_by'),
+                uuid=self.kwargs.get('project_uuid')
+            )
+
+            if not self.project.public_project and not (
+                    request.user == self.project.created_by or
+                    self.project.team_members.filter(id=request.user.id).exists()
+            ):
+                raise PermissionDenied("You don't have permission to view this project's outreach activities.")
+
+            return super().dispatch(request, *args, **kwargs)
+
+        except PermissionDenied as e:
+            messages.error(request, str(e))
+            return redirect('project:project_list')
+        except Exception as e:
+            messages.error(request, f"Error accessing project outreach: {str(e)}")
+            return redirect('project:project_list')
+
+    def get_queryset(self):
+        outreach_items = []
+
+        # Get and process events
+        for event in Event.objects.filter(
+                project=self.project,
+                status='published'
+            ).select_related('category').prefetch_related(
+                Prefetch('event_speakers',
+                queryset=Speaker.objects.select_related('person').order_by('order'))
+            ):
+            outreach_items.append({
+                'type': 'event',
+                'date': event.start_date.date(),
+                'title': event.title,
+                'description': event.description,
+                'location': event.location,
+                'url': f'/events/{event.slug}/',
+                'speakers': [{
+                    'name': speaker.person.get_full_name,
+                    'role': speaker.get_speaker_type_display()
+                } for speaker in event.event_speakers.all()],
+                'category': event.category.name if event.category else None,
+                'status': event.status
+            })
+
+        # Get and process publications
+        for publication in Publication.objects.filter(
+                project=self.project,
+                status='published',
+                publish=True
+            ).select_related('category').prefetch_related('authors'):
+            if publication.date_publish:
+                outreach_items.append({
+                    'type': 'publication',
+                    'date': publication.date_publish,
+                    'title': publication.title,
+                    'description': publication.description,
+                    'url': f'/publications/{publication.slug}/',
+                    'authors': [author.get_full_name for author in publication.authors.all()],
+                    'category': publication.category.name if publication.category else None,
+                    'download_count': publication.download_count
+                })
+
+        return sorted(outreach_items, key=lambda x: x['date'], reverse=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+
+        # Compute summary statistics
+        context['stats'] = {
+            'total_events': Event.objects.filter(
+                project=self.project,
+                status='published'
+            ).count(),
+            'total_publications': Publication.objects.filter(
+                project=self.project,
+                status='published',
+                publish=True
+            ).count(),
+            'upcoming_events': Event.objects.filter(
+                project=self.project,
+                status='published',
+                start_date__gt=timezone.now()
+            ).count()
+        }
+
+        # Add permissions
+        context.update({
+            'can_create_event': self.project.can_user_edit(self.request.user),
+            'can_create_publication': self.project.can_user_edit(self.request.user),
+        })
+
+        return context
+
+class ResearchDataListView(LoginRequiredMixin, ListView):
+    model = ResearchData
+    template_name = 'dashboard/project/download.html'
+    context_object_name = 'research_data_list'
+    paginate_by = 10
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.project = get_object_or_404(
+                Project.objects.select_related('created_by'),
+                uuid=self.kwargs.get('project_uuid')
+            )
+
+            if not self.project.public_project and not (
+                    request.user == self.project.created_by or
+                    self.project.team_members.filter(id=request.user.id).exists()
+            ):
+                raise PermissionDenied("You don't have permission to view this project's research data.")
+
+            return super().dispatch(request, *args, **kwargs)
+
+        except PermissionDenied as e:
+            messages.error(request, str(e))
+            return redirect('project:project_list')
+        except Exception as e:
+            messages.error(request, f"Error accessing project research data: {str(e)}")
+            return redirect('project:project_list')
+
+    def get_queryset(self):
+        return ResearchData.objects.filter(
+            project=self.project
+        ).select_related(
+            'responsible_person',
+            'project'
+        ).order_by('-collection_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+
+        # Add statistics
+        context['stats'] = {
+            'total_data': ResearchData.objects.filter(project=self.project).count(),
+            'recent_data': ResearchData.objects.filter(
+                project=self.project,
+                created_at__gte=timezone.now() - timezone.timedelta(days=30)
+            ).count(),
+            'data_types': ResearchData.objects.filter(
+                project=self.project
+            ).values('data_type').distinct().count()
+        }
+
+        # Add permissions
+        context.update({
+            'can_create_data': self.project.can_user_edit(self.request.user),
+            'data_types': ResearchData.DATA_TYPES
+        })
+
+        return context
+
+
+class ProjectConfigView(LoginRequiredMixin, TemplateView):
+    template_name = 'dashboard/project/settings.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        project = get_object_or_404(Project, uuid=self.kwargs['project_uuid'])
+
+        context.update({
+            'project': project,
+            'recent_logs': project.activity_logs.select_related('actor')[:5],
+            'total_budget': project.get_total_budget(),
+            'remaining_budget': project.get_remaining_budget(),
+            'funding_sources': project.get_funding_sources(),
+            'active_tab': self.request.GET.get('tab', 'settings')
+        })
+        return context
+
+
+class ProjectSettingsUpdateView(LoginRequiredMixin, View):
+    def post(self, request, project_uuid):
+        project = get_object_or_404(Project, uuid=project_uuid)
+
+        if not project.can_user_edit(request.user):
+            messages.error(request, "You don't have permission to edit this project.")
+            return redirect('project:settings', project_uuid=project_uuid)
+
+        title = request.POST.get('title')
+        status = request.POST.get('status')
+        description = request.POST.get('description', '')
+
+        if title and status:
+            project.title = title
+            project.status = status
+            project.description = description
+            project._current_user = request.user
+            project.save()
+
+            messages.success(request, 'Project settings updated successfully.')
+        else:
+            messages.error(request, 'Invalid form data.')
+
+        return redirect('project:settings', project_uuid=project_uuid)
+
+
+class ProjectFundingCreateView(LoginRequiredMixin, CreateView):
+    model = ProjectFunding
+    form_class = ProjectFundingForm
+    template_name = 'dashboard/project/funding_create.html'
+
+    def get_project(self):
+        return get_object_or_404(Project, uuid=self.kwargs['project_uuid'])
+
+    def form_valid(self, form):
+        if not self.get_project().can_user_edit(self.request.user):
+            messages.error(self.request, "You don't have permission to add funding.")
+            return redirect('project:settings', project_uuid=self.kwargs['project_uuid'])
+
+        funding = form.save(commit=False)
+        funding.project = self.get_project()
+        funding._current_user = self.request.user
+
+        try:
+            funding.clean()
+            funding.save()
+            messages.success(self.request, 'Funding added successfully.')
+            return redirect('project:settings', project_uuid=self.kwargs['project_uuid'])
+        except ValidationError as e:
+            messages.error(self.request, str(e))
+            return self.form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        project = self.get_project()
+        context.update({
+            'project': project,
+            'current_funding': project.get_funding_sources(),
+        })
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('project:settings', kwargs={'project_uuid': self.kwargs['project_uuid']})
+
+
+class ProjectLogsView(LoginRequiredMixin, View):
+    def get(self, request, project_uuid):
+        project = get_object_or_404(Project, uuid=project_uuid)
+        page = request.GET.get('page', 1)
+
+        logs = project.activity_logs.select_related('actor').order_by('-timestamp')
+        paginator = Paginator(logs, 20)
+        page_obj = paginator.get_page(page)
+
+        logs_data = []
+        for log in page_obj:
+            logs_data.append({
+                'action': log.get_action_type_display(),
+                'user': log.actor.get_full_name(),
+                'description': log.description,
+                'timestamp': log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                'changes': log.changes
+            })
+
+        return JsonResponse({
+            'logs': logs_data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'total_pages': paginator.num_pages
+        })
 
 
 @method_decorator(require_POST, name='dispatch')
@@ -691,7 +956,6 @@ class UpdateMemberRoleView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                 'role': self.object.get_role_display()
             })
         return response
-
 
 @method_decorator(require_POST, name='dispatch')
 class RemoveMemberView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -753,3 +1017,5 @@ class TaskUpdateStatusView(LoginRequiredMixin, PermissionMixin, View):
                 'error': str(e)
             })
 
+def ProjectSettings(request):
+    return render(request, 'dashboard/project/settings.html')

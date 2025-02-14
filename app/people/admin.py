@@ -56,7 +56,7 @@ admin.site.register(CustomUser, CustomUserAdmin)
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'email', 'phone_number', 'user_type', 'display_image')
+    list_display = ('full_name', 'email', 'phone_number', 'user_type', 'display_image', 'extension')
     list_filter = ('user__user_type',)
     search_fields = ('first_name', 'last_name', 'email', 'phone_number')
     inlines = [RelationshipInline, StaffInline]

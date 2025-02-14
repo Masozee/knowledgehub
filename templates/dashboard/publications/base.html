@@ -21,18 +21,57 @@
     <div class="nk-app-root">
         <!-- main @s -->
         <div class="nk-main ">
+            <div class="nk-wrap">
             <!-- wrap @s -->
-            <div class="nk-wrap ">
-                <div class="nk-header nk-header-fixed is-light">
+            <div class="nk-header nk-header-fixed is-light">
                     <div class="container-lg wide-xl">
                         <div class="nk-header-wrap">
                             <div class="nk-header-brand">
-                                <a href="{% url 'web:index' %}" class="logo-link">
+                                <a href="{% url  'web:index' %}" class="logo-link">
                                     <img class="logo-light logo-img" src="{% static 'dashboard/images/logo.png' %}" srcset="{% static 'dashboard/images/logo2x.png' %} 2x" alt="logo">
                                     <img class="logo-dark logo-img" src="{% static 'dashboard/images/logo-dark.png' %}" srcset="{% static 'dashboard/images/logo-dark2x.png' %} 2x" alt="logo-dark">
-                                    
                                 </a>
                             </div><!-- .nk-header-brand -->
+                            <div class="nk-header-menu">
+                                <ul class="nk-menu nk-menu-main">
+                                    <li class="nk-menu-item">
+                                        <a href="{% url 'web:index' %}" class="nk-menu-link">
+                                            <span class="nk-menu-text">Overview</span>
+                                        </a>
+                                    </li><!-- .nk-menu-item -->
+                                    <li class="nk-menu-item has-sub">
+                                        <a href="#" class="nk-menu-link nk-menu-toggle">
+                                            <span class="nk-menu-text">Quick Action</span>
+                                        </a>
+                                        <ul class="nk-menu-sub">
+                                            <li class="nk-menu-item">
+                                                <a href="html/apps-messages.html" class="nk-menu-link"><span class="nk-menu-text">Personal Cloud</span></a>
+                                            </li>
+                                            <li class="nk-menu-item">
+                                                <a href="html/apps-inbox.html" class="nk-menu-link"><span class="nk-menu-text">CSIS Email</span></a>
+                                            </li>
+                                            <li class="nk-menu-item">
+                                                <a href="html/apps-file-manager.html" class="nk-menu-link"><span class="nk-menu-text">Archive</span></a>
+                                            </li>
+                                        </ul><!-- .nk-menu-sub -->
+                                    </li><!-- .nk-menu-item -->
+                                    <li class="nk-menu-item">
+                                        <a href="html/components.html" class="nk-menu-link">
+                                            <span class="nk-menu-text">Bulletin</span>
+                                        </a>
+                                    </li><!-- .nk-menu-item -->
+                                    <li class="nk-menu-item">
+                                        <a href="html/support-kb.html" class="nk-menu-link">
+                                            <span class="nk-menu-text">Support</span>
+                                        </a>
+                                    </li><!-- .nk-menu-item -->
+                                    <li class="nk-menu-item">
+                                        <a href="html/pages/contact.html" class="nk-menu-link">
+                                            <span class="nk-menu-text">Contact</span>
+                                        </a>
+                                    </li><!-- .nk-menu-item -->
+                                </ul><!-- .nk-menu -->
+                            </div><!-- .nk-header-menu -->
                             <div class="nk-header-tools">
                                 <ul class="nk-quick-nav">
                                     <li class="dropdown language-dropdown d-none d-sm-block me-n1">
@@ -45,72 +84,22 @@
                                             <ul class="language-list">
                                                 <li>
                                                     <a href="#" class="language-item">
-                                                        <img src="{% static 'dashboard/images/flags/english.png' %}" alt="" class="language-flag">
+
                                                         <span class="language-name">English</span>
                                                     </a>
                                                 </li>
                                                 <li>
                                                     <a href="#" class="language-item">
-                                                        <img src="{% static 'dashboard/images/flags/spanish.png' %}" alt="" class="language-flag">
-                                                        <span class="language-name">Español</span>
+
+                                                        <span class="language-name">Bahasa Indonesia</span>
                                                     </a>
                                                 </li>
-                                                <li>
-                                                    <a href="#" class="language-item">
-                                                        <img src="{% static 'dashboard/images/flags/french.png' %}" alt="" class="language-flag">
-                                                        <span class="language-name">Français</span>
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="#" class="language-item">
-                                                        <img src="{% static 'dashboard/images/flags/turkey.png' %}" alt="" class="language-flag">
-                                                        <span class="language-name">Türkçe</span>
-                                                    </a>
-                                                </li>
+
                                             </ul>
                                         </div>
                                     </li><!-- .dropdown -->
-                                    <li class="dropdown user-dropdown">
-                                        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
-                                            <div class="user-toggle">
-                                                <div class="user-avatar sm">
-                                                    <em class="icon ni ni-user-alt"></em>
-                                                </div>
-                                                <div class="user-name dropdown-indicator d-none d-sm-block">Abu Bin Ishityak</div>
-                                            </div>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1">
-                                            <div class="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
-                                                <div class="user-card">
-                                                    <div class="user-avatar">
-                                                        <span>AB</span>
-                                                    </div>
-                                                    <div class="user-info">
-                                                        <span class="lead-text">Abu Bin Ishtiyak</span>
-                                                        <span class="sub-text">info@softnio.com</span>
-                                                    </div>
-                                                    <div class="user-action">
-                                                        <a class="btn btn-icon me-n2" href="html/subscription/profile-setting.html"><em class="icon ni ni-setting"></em></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="dropdown-inner">
-                                                <ul class="link-list">
-                                                    <li><a href="html/subscription/profile.html"><em class="icon ni ni-user-alt"></em><span>View Profile</span></a></li>
-                                                    <li><a href="html/subscription/profile-setting.html"><em class="icon ni ni-setting-alt"></em><span>Account Setting</span></a></li>
-                                                    <li><a href="html/subscription/profile-activity.html"><em class="icon ni ni-activity-alt"></em><span>Login Activity</span></a></li>
-                                                    <li><a class="dark-switch" href="#"><em class="icon ni ni-moon"></em><span>Dark Mode</span></a></li>
-                                                </ul>
-                                            </div>
-                                            <div class="dropdown-inner">
-                                                <ul class="link-list">
-                                                    <li><a href="#"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </li><!-- .dropdown -->
                                     <li class="dropdown notification-dropdown">
-                                        <a href="#" class="dropdown-toggle nk-quick-nav-icon me-lg-n1" data-bs-toggle="dropdown">
+                                        <a href="#" class="dropdown-toggle nk-quick-nav-icon" data-bs-toggle="dropdown">
                                             <div class="icon-status icon-status-info"><em class="icon ni ni-bell"></em></div>
                                         </a>
                                         <div class="dropdown-menu dropdown-menu-xl dropdown-menu-end dropdown-menu-s1">
@@ -181,6 +170,51 @@
                                             </div>
                                         </div>
                                     </li><!-- .dropdown -->
+                                    <li class="dropdown user-dropdown">
+                                        <a href="#" class="dropdown-toggle me-lg-n1" data-bs-toggle="dropdown">
+                                            <div class="user-toggle">
+                                                <div class="user-avatar sm">
+                                                    <em class="icon ni ni-user-alt"></em>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-md dropdown-menu-end dropdown-menu-s1">
+                                            <div class="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
+                                                <div class="user-card">
+                                                    <div class="user-avatar">
+                                                        <span>{{ request.user.email|first|upper }}</span>
+                                                    </div>
+                                                    <div class="user-info">
+                                                        <!-- Since we don't have username, use email or first_name if available -->
+                                                        <span class="lead-text">
+                                                            {% if request.user.get_full_name %}
+                                                                {{ request.user.get_full_name }}
+                                                            {% else %}
+                                                                {{ request.user.email }}
+                                                            {% endif %}
+                                                        </span>
+                                                        <span class="sub-text">{{ request.user.email }}</span>
+                                                    </div>
+                                                    <div class="user-action">
+                                                        <a class="btn btn-icon me-n2" href="html/user-profile-setting.html"><em class="icon ni ni-setting"></em></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="dropdown-inner">
+                                                <ul class="link-list">
+                                                    <li><a href="html/user-profile-regular.html"><em class="icon ni ni-user-alt"></em><span>View Profile</span></a></li>
+                                                    <li><a href="html/user-profile-setting.html"><em class="icon ni ni-setting-alt"></em><span>Account Setting</span></a></li>
+                                                    <li><a href="html/user-profile-activity.html"><em class="icon ni ni-activity-alt"></em><span>Login Activity</span></a></li>
+                                                    <li><a class="dark-switch" href="#"><em class="icon ni ni-moon"></em><span>Dark Mode</span></a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="dropdown-inner">
+                                                <ul class="link-list">
+                                                    <li><a href="{% url 'account_logout' %}"><em class="icon ni ni-signout"></em><span>Sign out</span></a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </li><!-- .dropdown -->
                                     <li class="d-lg-none">
                                         <a href="#" class="toggle nk-quick-nav-icon me-n1" data-target="sideNav"><em class="icon ni ni-menu"></em></a>
                                     </li>
@@ -196,44 +230,91 @@
                         <div class="nk-content-inner">
                             <div class="nk-aside" data-content="sideNav" data-toggle-overlay="true" data-toggle-screen="lg" data-toggle-body="true">
                                 <div class="nk-sidebar-menu" data-simplebar>
+                                    <ul class="nk-menu nk-menu-main">
+                                        <li class="nk-menu-item">
+                                            <a href="{% url 'web:index' %}" class="nk-menu-link">
+                                                <span class="nk-menu-text">Overview</span>
+                                            </a>
+                                        </li><!-- .nk-menu-item -->
+                                        <li class="nk-menu-item has-sub">
+                                            <a href="#" class="nk-menu-link nk-menu-toggle">
+                                                <span class="nk-menu-text">Apps</span>
+                                            </a>
+                                            <ul class="nk-menu-sub">
+                                                <li class="nk-menu-item">
+                                                    <a href="html/apps-messages.html" class="nk-menu-link"><span class="nk-menu-text">Messages</span></a>
+                                                </li>
+                                                <li class="nk-menu-item">
+                                                    <a href="html/apps-inbox.html" class="nk-menu-link"><span class="nk-menu-text">Inbox / Mail</span></a>
+                                                </li>
+                                                <li class="nk-menu-item">
+                                                    <a href="html/apps-file-manager.html" class="nk-menu-link"><span class="nk-menu-text">File Manager</span></a>
+                                                </li>
+                                                <li class="nk-menu-item">
+                                                    <a href="html/apps-chats.html" class="nk-menu-link"><span class="nk-menu-text">Chats / Messenger</span></a>
+                                                </li>
+                                                <li class="nk-menu-item">
+                                                    <a href="{% url 'web:index-calendar' %}" class="nk-menu-link"><span class="nk-menu-text">Calendar</span><span class="nk-menu-badge">New</span></a>
+                                                </li>
+                                                <li class="nk-menu-item">
+                                                    <a href="html/apps-kanban.html" class="nk-menu-link"><span class="nk-menu-text">Kanban Board</span><span class="nk-menu-badge">New</span></a>
+                                                </li>
+                                            </ul><!-- .nk-menu-sub -->
+                                        </li><!-- .nk-menu-item -->
+                                        <li class="nk-menu-item">
+                                            <a href="html/components.html" class="nk-menu-link">
+                                                <span class="nk-menu-text">Components</span>
+                                            </a>
+                                        </li><!-- .nk-menu-item -->
+                                        <li class="nk-menu-item">
+                                            <a href="html/support-kb.html" class="nk-menu-link">
+                                                <span class="nk-menu-text">Support</span>
+                                            </a>
+                                        </li><!-- .nk-menu-item -->
+                                        <li class="nk-menu-item">
+                                            <a href="html/pages/contact.html" class="nk-menu-link">
+                                                <span class="nk-menu-text">Contact</span>
+                                            </a>
+                                        </li><!-- .nk-menu-item -->
+                                    </ul><!-- .nk-menu -->
                                     <!-- Menu -->
                                     <ul class="nk-menu">
                                         <li class="nk-menu-heading">
                                             <h6 class="overline-title">Menu</h6>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="{% url 'web:index' %}" class="nk-menu-link">
+                                            <a href="{% url 'publications:index' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-dashboard"></em></span>
                                                 <span class="nk-menu-text">Dashboard</span>
                                             </a>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="html/subscription/subscriptions.html" class="nk-menu-link">
+                                            <a href="{% url 'publications:list' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-list-thumb"></em></span>
                                                 <span class="nk-menu-text">Publication List</span>
                                             </a>
                                         </li>
                                          <li class="nk-menu-item">
-                                            <a href="html/subscription/team-access.html" class="nk-menu-link">
+                                            <a href="{% url 'publications:author-list' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-users"></em></span>
                                                 <span class="nk-menu-text">Authors</span>
                                             </a>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="html/subscription/payments.html" class="nk-menu-link">
+                                            <a href="{% url 'publications:publication-topics' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-report-profit"></em></span>
-                                                <span class="nk-menu-text">Category</span>
+                                                <span class="nk-menu-text">Topics</span>
                                             </a>
                                         </li>
 
                                         <li class="nk-menu-item">
-                                            <a href="html/subscription/downloads.html" class="nk-menu-link">
-                                                <span class="nk-menu-icon"><em class="icon ni ni-download-cloud"></em></span>
-                                                <span class="nk-menu-text">Download</span>
+                                            <a href="{% url 'publications:publication-tags' %}" class="nk-menu-link">
+                                                <span class="nk-menu-icon"><em class="icon ni ni-notes"></em></span>
+                                                <span class="nk-menu-text">Tags</span>
                                             </a>
                                         </li>
                                         <li class="nk-menu-item">
-                                            <a href="html/subscription/profile-setting.html" class="nk-menu-link">
+                                            <a href="{% url 'publications:publication-submissions' %}" class="nk-menu-link">
                                                 <span class="nk-menu-icon"><em class="icon ni ni-files"></em></span>
                                                 <span class="nk-menu-text">Submissions</span>
                                             </a>

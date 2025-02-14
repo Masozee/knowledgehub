@@ -99,7 +99,7 @@ class Speaker(models.Model):
         unique_together = ['event', 'person', 'speaking_slot_start']
 
     def __str__(self):
-        return f"{self.person.full_name} - {self.event.title}"
+        return f"{self.person.first_name} {self.person.last_name} - {self.event.title}"
 
 
 class SpeakerAttachment(models.Model):

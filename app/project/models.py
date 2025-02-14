@@ -476,7 +476,7 @@ class ResearchData(AuditModelMixin, models.Model):
     methodology = models.TextField()
     storage_location = models.CharField(max_length=255)
     file = models.FileField(upload_to='research_data/')
-    metadata = models.JSONField()
+    metadata = models.JSONField(blank=True, null=True)
     responsible_person = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
 
 class ProjectFunding(AuditModelMixin, models.Model):

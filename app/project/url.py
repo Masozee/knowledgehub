@@ -13,6 +13,8 @@ urlpatterns = [
 
     #Task
     path('<uuid:project_uuid>/progress/', views.TaskKanbanView.as_view(), name='task_kanban'),
+    path('<uuid:project_uuid>/outreach/', views.ProjectOutreachView.as_view(), name='outreach'),
+    path('<uuid:project_uuid>/data/', views.ResearchDataListView.as_view(), name='data-research'),
 
     # Task List View
     path('<uuid:project_uuid>/tasks/', views.TaskListView.as_view(), name='task_list'),
@@ -25,6 +27,11 @@ urlpatterns = [
 
     #Fund
     path('<uuid:project_uuid>/funding/', views.ProjectFundUsageView.as_view(), name='funding'),
+
+    path('<uuid:project_uuid>/settings/', views.ProjectConfigView.as_view(), name='settings'),
+    path('<uuid:project_uuid>/settings/update/', views.ProjectSettingsUpdateView.as_view(), name='update_settings'),
+    path('<uuid:project_uuid>/funding/add/', views.ProjectFundingCreateView.as_view(), name='add_funding'),
+    path('<uuid:project_uuid>/logs/', views.ProjectLogsView.as_view(), name='project_logs'),
 
     #team
     path('<uuid:project_uuid>/team/', views.ProjectTeamView.as_view(), name='team'),

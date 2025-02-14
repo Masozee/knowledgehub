@@ -1,0 +1,215 @@
+{% extends 'dashboard/project/base.html' %}
+{% load static %}
+
+{% block content %}
+    <!-- Main Content -->
+            <div class="nk-content-body">
+                <div class="nk-content-wrap">
+                    <!-- Header Section -->
+                    <div class="nk-block-head nk-block-head-lg">
+                        <div class="nk-block-head-sub"><span>{{ project.title }}</span></div>
+                        <div class="nk-block-between-md g-4">
+                            <div class="nk-block-head-content">
+                                <h2 class="nk-block-title fw-normal">Research Data</h2>
+                                <div class="nk-block-des">
+                                    <p>View and manage your research data collections.</p>
+                                </div>
+                            </div>
+                            <div class="nk-block-head-content">
+                                <ul class="nk-block-tools g-3">
+                                    <li>
+                                        <div class="drodown">
+                                            <a href="#" class="dropdown-toggle btn btn-outline-light btn-white" data-bs-toggle="dropdown">
+                                                <em class="icon ni ni-filter-alt"></em>
+                                                <span>Filter Data</span>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-end">
+                                                <ul class="link-list-opt no-bdr">
+                                                    {% for type_choice in data_types %}
+                                                    <li>
+                                                        <a href="?type={{ type_choice.0 }}">
+                                                            <span>{{ type_choice.1 }}</span>
+                                                        </a>
+                                                    </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <a href="#" class="btn btn-primary">
+                                            <em class="icon ni ni-plus"></em>
+                                            <span>Add Research Data</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Research Data List -->
+                    <div class="nk-block">
+                        <div class="card card-bordered card-stretch">
+                            <div class="card-inner-group">
+                                <!-- List Header -->
+                                <div class="card-inner position-relative">
+                                    <div class="card-title-group">
+                                        <div class="card-title">
+                                            <h5 class="title">All Research Data</h5>
+                                        </div>
+                                        <div class="card-tools me-n1">
+                                            <ul class="btn-toolbar">
+                                                <li>
+                                                    <a href="#" class="btn btn-icon search-toggle toggle-search" data-target="search">
+                                                        <em class="icon ni ni-search"></em>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="card-search search-wrap" data-search="search">
+                                            <div class="search-content">
+                                                <form method="get" action="{#  #}">
+                                                    <div class="form-group">
+                                                        <div class="form-control-wrap">
+                                                            <div class="form-icon form-icon-start">
+                                                                <em class="icon ni ni-search"></em>
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-lg" name="search" placeholder="Search Research Data">
+                                                            <div class="form-icon form-icon-end">
+                                                                <a href="#" class="toggle-search" data-target="search">
+                                                                    <em class="icon ni ni-cross"></em>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- List Content -->
+                                <div class="card-inner p-0">
+                                    <div class="nk-tb-list nk-tb-ulist">
+                                        <!-- List Headers -->
+                                        <div class="nk-tb-item nk-tb-head">
+                                            <div class="nk-tb-col"><span class="sub-text">Title</span></div>
+                                            <div class="nk-tb-col tb-col-lg"><span class="sub-text">Type</span></div>
+                                            <div class="nk-tb-col tb-col-lg"><span class="sub-text">Collection Date</span></div>
+                                            <div class="nk-tb-col tb-col-md"><span class="sub-text">Responsible Person</span></div>
+                                            <div class="nk-tb-col nk-tb-col-tools text-end">
+                                                <span class="sub-text">Actions</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- List Items -->
+                                        {% for data in research_data_list %}
+                                        <div class="nk-tb-item">
+                                            <div class="nk-tb-col">
+                                                <span class="tb-lead">{{ data.title }}</span>
+                                            </div>
+                                            <div class="nk-tb-col tb-col-lg">
+                                                <span class="badge badge-dim bg-primary">{{ data.get_data_type_display }}</span>
+                                            </div>
+                                            <div class="nk-tb-col tb-col-lg">
+                                                <span>{{ data.collection_date|date:"d M Y" }}</span>
+                                            </div>
+                                            <div class="nk-tb-col tb-col-md">
+                                                <span>{{ data.responsible_person.get_full_name|default:data.responsible_person.username }}</span>
+                                            </div>
+                                            <div class="nk-tb-col nk-tb-col-tools">
+                                                <ul class="nk-tb-actions gx-1">
+                                                    <li>
+                                                        <a href="#" class="btn btn-sm btn-icon btn-trigger" data-bs-toggle="tooltip" data-bs-placement="top" title="Download">
+                                                            <em class="icon ni ni-download"></em>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <div class="drodown">
+                                                            <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger" data-bs-toggle="dropdown">
+                                                                <em class="icon ni ni-more-h"></em>
+                                                            </a>
+                                                            <div class="dropdown-menu dropdown-menu-end">
+                                                                <ul class="link-list-opt no-bdr">
+                                                                    <li>
+                                                                        <a href="#">
+                                                                            <em class="icon ni ni-eye"></em>
+                                                                            <span>View Details</span>
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="#">
+                                                                            <em class="icon ni ni-edit"></em>
+                                                                            <span>Edit</span>
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="#" class="text-danger">
+                                                                            <em class="icon ni ni-trash"></em>
+                                                                            <span>Delete</span>
+                                                                        </a>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        {% empty %}
+                                        <div class="nk-tb-item">
+                                            <div class="nk-tb-col text-center p-4" colspan="5">
+                                                <em class="icon ni ni-database-fill" style="font-size: 3rem;"></em>
+                                                <p class="mt-3">No research data available.</p>
+                                                <a href="#" class="btn btn-primary">
+                                                    <em class="icon ni ni-plus"></em>
+                                                    <span>Add First Data</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <!-- Pagination if needed -->
+                                {% if is_paginated %}
+                                <div class="card-inner">
+                                    <ul class="pagination justify-content-center justify-content-md-start">
+                                        {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                        </li>
+                                        {% endif %}
+                                        
+                                        {% for num in page_obj.paginator.page_range %}
+                                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                        {% endfor %}
+                                        
+                                        {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="nk-footer">
+                    <div class="container wide-xl">
+                        <div class="nk-footer-wrap g-2">
+                            <div class="nk-footer-copyright">
+                                &copy; {% now "Y" %} Research Data Management System
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+       
+{% endblock %}

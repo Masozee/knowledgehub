@@ -1,0 +1,259 @@
+{% extends 'dashboard/project/base.html' %}
+{% load static %}
+
+{% block content %}
+
+
+            <div class="nk-content-body">
+                <!-- breadcrumb -->
+                <div class="nk-block-head nk-block-head-sm">
+                    <div class="nk-block-between">
+                        <div class="nk-block-head-content">
+                            <h3 class="nk-block-title page-title">Project Outreach</h3>
+                            <div class="nk-block-des text-soft">
+                                <p>You have total {{ stats.total_events|add:stats.total_publications }} outreach activities.</p>
+                            </div>
+                        </div><!-- .nk-block-head-content -->
+                        <div class="nk-block-head-content">
+                            <div class="toggle-wrap nk-block-tools-toggle">
+                                <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu"><em class="icon ni ni-menu-alt-r"></em></a>
+                                <div class="toggle-expand-content" data-content="pageMenu">
+                                    <ul class="nk-block-tools g-3">
+                                        <li>
+                                            <div class="drodown">
+                                                <a href="#" class="dropdown-toggle btn btn-white btn-dim btn-outline-light" data-bs-toggle="dropdown">
+                                                    <em class="d-none d-sm-inline icon ni ni-filter-alt"></em>
+                                                    <span>Filter By</span>
+                                                    <em class="dd-indc icon ni ni-chevron-right"></em>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <ul class="link-list-opt no-bdr">
+                                                        <li><a href="?type=event"><span>Events Only</span></a></li>
+                                                        <li><a href="?type=publication"><span>Publications Only</span></a></li>
+                                                        <li><a href="?"><span>All</span></a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        
+                                    </ul>
+                                </div>
+                            </div>
+                        </div><!-- .nk-block-head-content -->
+                    </div><!-- .nk-block-between -->
+                </div>
+
+                <!-- stats cards -->
+                <div class="nk-block">
+                    <div class="row g-gs">
+                        <div class="col-md-4">
+                            <div class="card card-bordered">
+                                <div class="card-inner">
+                                    <div class="card-title-group align-start mb-2">
+                                        <div class="card-title">
+                                            <h6 class="title">Total Events</h6>
+                                        </div>
+                                    </div>
+                                    <div class="align-end flex-sm-wrap g-4 flex-md-nowrap">
+                                        <div class="nk-sale-data">
+                                            <span class="amount">{{ stats.total_events }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card card-bordered">
+                                <div class="card-inner">
+                                    <div class="card-title-group align-start mb-2">
+                                        <div class="card-title">
+                                            <h6 class="title">Publications</h6>
+                                        </div>
+                                    </div>
+                                    <div class="align-end flex-sm-wrap g-4 flex-md-nowrap">
+                                        <div class="nk-sale-data">
+                                            <span class="amount">{{ stats.total_publications }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card card-bordered">
+                                <div class="card-inner">
+                                    <div class="card-title-group align-start mb-2">
+                                        <div class="card-title">
+                                            <h6 class="title">Upcoming Events</h6>
+                                        </div>
+                                    </div>
+                                    <div class="align-end flex-sm-wrap g-4 flex-md-nowrap">
+                                        <div class="nk-sale-data">
+                                            <span class="amount">{{ stats.upcoming_events }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- outreach cards -->
+                <div class="nk-block">
+                    <div class="row g-gs">
+                        {% for item in outreach_items %}
+                        <div class="col-sm-6 col-xl-4">
+                            <div class="card card-bordered h-100">
+                                <div class="card-inner">
+                                    <div class="project">
+                                        <div class="project-head">
+                                            <a href="{{ item.url }}" class="project-title">
+                                                
+                                                <div class="project-info">
+                                                    <h6 class="title">{{ item.title }}</h6>
+                                                    <span class="sub-text">{{ item.category|default:"Uncategorized" }}</span>
+                                                </div>
+                                            </a>
+                                            <div class="drodown">
+                                                <a href="#" class="dropdown-toggle btn btn-sm btn-icon btn-trigger mt-n1 me-n1" data-bs-toggle="dropdown">
+                                                    <em class="icon ni ni-more-h"></em>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <ul class="link-list-opt no-bdr">
+                                                        <li><a href="{{ item.url }}"><em class="icon ni ni-eye"></em><span>View Details</span></a></li>
+                                                        {% if can_edit %}
+                                                        <li><a href="{{ item.url }}edit/"><em class="icon ni ni-edit"></em><span>Edit</span></a></li>
+                                                        {% endif %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="project-details">
+                                            <p>{{ item.description|truncatewords:30 |safe}}</p>
+                                        </div>
+                                        {% if item.type == 'event' %}
+                                        <div class="project-progress">
+                                            <div class="project-progress-details">
+                                                <div class="project-progress-task">
+                                                    <em class="icon ni ni-users"></em>
+                                                    <span>{{ item.speakers|length }} Speakers</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="project-meta">
+                                            <ul class="project-users g-1">
+                                                {% for speaker in item.speakers|slice:":3" %}
+                                                <li>
+                                                    <div class="user-avatar sm bg-primary">
+                                                        <span>{{ speaker.name|slice:":2"|upper }}</span>
+                                                    </div>
+                                                </li>
+                                                {% endfor %}
+                                                {% if item.speakers|length > 3 %}
+                                                <li>
+                                                    <div class="user-avatar sm bg-light">
+                                                        <span>+{{ item.speakers|length|add:"-3" }}</span>
+                                                    </div>
+                                                </li>
+                                                {% endif %}
+                                            </ul>
+                                            <span class="badge {% if item.status == 'published' %}badge-dim bg-success{% else %}badge-dim bg-warning{% endif %}">
+                                                <em class="icon ni ni-calendar"></em>
+                                                <span>{{ item.date|date:"M d, Y" }}</span>
+                                            </span>
+                                        </div>
+                                        {% else %}
+                                        <div class="project-progress">
+                                            <div class="project-progress-details">
+                                                <div class="project-progress-task">
+                                                    <em class="icon ni ni-users"></em>
+                                                    <span>{{ item.authors|length }} Authors</span>
+                                                </div>
+                                                <div class="project-progress-stats">
+                                                    <em class="icon ni ni-download"></em>
+                                                    <span>{{ item.download_count }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="project-meta">
+                                            <ul class="project-users g-1">
+                                                {% for author in item.authors|slice:":3" %}
+                                                <li>
+                                                    <div class="user-avatar sm bg-blue">
+                                                        <span>{{ author|slice:":2"|upper }}</span>
+                                                    </div>
+                                                </li>
+                                                {% endfor %}
+                                                {% if item.authors|length > 3 %}
+                                                <li>
+                                                    <div class="user-avatar sm bg-light">
+                                                        <span>+{{ item.authors|length|add:"-3" }}</span>
+                                                    </div>
+                                                </li>
+                                                {% endif %}
+                                            </ul>
+                                            <span class="badge badge-dim bg-info">
+                                                <em class="icon ni ni-calendar"></em>
+                                                <span>{{ item.date|date:"M d, Y" }}</span>
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="card card-bordered">
+                                <div class="card-inner">
+                                    <div class="card-title-group align-start mb-2">
+                                        <div class="card-title">
+                                            <h6 class="title">No outreach activities found</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="card-inner">
+                    <div class="nk-block-between-md g-3">
+                        <div class="g">
+                            <ul class="pagination justify-content-center justify-content-md-start">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+       
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize any needed plugins or interactions
+        $('.project-progress .progress-bar').each(function() {
+            let progress = $(this).data('progress');
+            $(this).css('width', progress + '%');
+        });
+    });
+</script>
+{% endblock %}

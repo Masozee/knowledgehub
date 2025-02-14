@@ -129,44 +129,61 @@
         </div>
     </div>
 </div>
-                <div class="row g-3">
-                    <div class="col-12">
-                        <div class="form-group">
-                            <label class="form-label">Select Team Members</label>
-                        
-                            <!-- Search input -->
-                            <div class="form-group mb-3">
-                                <input type="text" id="member-search" class="form-control" placeholder="Search members...">
-                            </div>
+                <hr>
+<div class="card-title-group mt-4">
+    <div class="card-title">
+        <h6 class="title">Team Members</h6>
+    </div>
+</div>
+<div class="col-lg-12">
+    <div class="form-group">
+        <label class="form-label" for="{{ form.project_lead.id_for_label }}">Project Lead</label>
+        <div class="form-control-wrap">
+            {{ form.project_lead }}
+            {% if form.project_lead.errors %}
+            <div class="alert alert-danger">{{ form.project_lead.errors }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="row g-3">
+    <div class="col-12">
+        <div class="form-group">
+            <label class="form-label">Select Team Members</label>
+            
+            <!-- Search input -->
+            <div class="form-group mb-3">
+                <input type="text" id="member-search" class="form-control" placeholder="Search members...">
+            </div>
 
-                            <!-- Modified team members list -->
-                            <div id="team-members-list">
-                                {% for user in form.team_members.field.queryset %}
-                                                <div class="member-item" data-search="{{ user.get_full_name|lower }} {{ user.email|lower }}">
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox"
-                                                               class="custom-control-input member-checkbox"
-                                                               name="{{ form.team_members.name }}"
-                                                               id="team-{{ user.id }}"
-                                                               value="{{ user.id }}">
-                                                               <label class="custom-control-label" for="team-{{ user.id }}">
-                                                                    <span class="user-card">
-                                                                        <span class="user-avatar sq bg-primary">
-                                                                            <span>{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
-                                                                        </span>
-                                                                        <span class="user-info">
-                                                                            <span class="lead-text">{{ user.first_name }} {{ user.last_name }}</span>
-                                                                            <span class="sub-text">{{ user.email }}</span>
-                                                                        </span>
-                                                                    </span>
-                                                                </label>
-                                                    </div>
-                                                </div>
-                                                {% endfor %}
-                                            </div>
-                        </div>
+            <!-- Modified team members list with 3-row layout -->
+            <div id="team-members-list" class="row g-2">
+                {% for user in form.team_members.field.queryset %}
+                <div class="col-md-4 member-item" data-search="{{ user.get_full_name|lower }} {{ user.email|lower }}">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox"
+                               class="custom-control-input member-checkbox"
+                               name="{{ form.team_members.name }}"
+                               id="team-{{ user.id }}"
+                               value="{{ user.id }}">
+                        <label class="custom-control-label d-flex align-items-center" for="team-{{ user.id }}">
+                            <span class="user-card">
+                                <span class="user-avatar sq bg-primary">
+                                    <span>{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
+                                </span>
+                                <span class="user-info">
+                                    <span class="lead-text">{{ user.first_name }} {{ user.last_name }}</span>
+                                    <span class="sub-text text-truncate">{{ user.email }}</span>
+                                </span>
+                            </span>
+                        </label>
                     </div>
                 </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
                 <!-- Form Actions -->
                 <div class="row mt-4">
                     <div class="col-12">

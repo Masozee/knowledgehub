@@ -301,3 +301,23 @@ class ProjectUpdateForm(forms.ModelForm):
                     )
 
         return project
+
+
+class ProjectFundingForm(forms.ModelForm):
+    class Meta:
+        model = ProjectFunding
+        fields = ['grant', 'budget', 'amount', 'status', 'start_date', 'end_date', 'notes']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        grant = cleaned_data.get('grant')
+        budget = cleaned_data.get('budget')
+
+        if grant and budget:
+            raise forms.ValidationError("Please select either a grant or budget, not both.")
+        if not grant and not budget:
+            raise forms.ValidationError("Please select either a grant or budget.")

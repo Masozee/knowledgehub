@@ -59,6 +59,6 @@ class EventAdmin(admin.ModelAdmin):
 
 
 # Customize admin site header and title
-admin.site.site_header = 'Event Management Administration'
-admin.site.site_title = 'Event Management Admin Portal'
-admin.site.index_title = 'Welcome to Event Management Portal'
+admin.site.site_header = 'Knowledgehub Administration'
+admin.site.site_title = 'Knowledgehub Admin Portal'
+admin.site.index_title = 'Welcome to Knowledgehub Portal'

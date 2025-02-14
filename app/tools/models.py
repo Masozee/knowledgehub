@@ -13,7 +13,11 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
+from django.utils.translation import gettext_lazy as _
 from django.core.validators import FileExtensionValidator
+from django.utils import timezone
+from app.project.mixins import AuditModelMixin
 import yt_dlp
 from pydub import AudioSegment
 import tempfile
@@ -253,3 +257,317 @@ class VideoNote(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+
+
+class SupportRequest(AuditModelMixin, models.Model):
+    """
+    Model for handling support requests from users
+    """
+    REQUEST_TYPE_CHOICES = (
+        ('technical', 'Technical Support'),
+        ('access', 'Access Request'),
+        ('bug', 'Bug Report'),
+        ('feature', 'Feature Request'),
+        ('inquiry', 'General Inquiry'),
+        ('data', 'Data Support'),
+        ('assistance', 'Staff Assistance'),
+        ('other', 'Other'),
+    )
+
+    PRIORITY_CHOICES = (
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    )
+
+    STATUS_CHOICES = (
+        ('draft', 'Draft'),
+        ('pending', 'Pending'),
+        ('assigned', 'Assigned'),
+        ('in_progress', 'In Progress'),
+        ('on_hold', 'On Hold'),
+        ('resolved', 'Resolved'),
+        ('closed', 'Closed'),
+        ('cancelled', 'Cancelled'),
+    )
+
+    # Basic Fields
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    request_type = models.CharField(max_length=20, choices=REQUEST_TYPE_CHOICES)
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    # Timestamps and Tracking
+    due_date = models.DateTimeField(null=True, blank=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolution_notes = models.TextField(blank=True)
+    version = models.PositiveIntegerField(default=1)
+
+    # Related Project (Optional)
+    project = models.ForeignKey(
+        'project.Project',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='support_requests'
+    )
+
+    # User Relations
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='submitted_support_requests'
+    )
+    assigned_to = models.ForeignKey(
+        'people.Staff',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_support_requests'
+    )
+
+    # For assistance requests
+    assistance_staff = models.ManyToManyField(
+        'people.Staff',
+        through='SupportAssistance',
+        related_name='assisted_requests',
+        blank=True
+    )
+
+    # Attachments
+    attachments = models.FileField(
+        upload_to='support_attachments/%Y/%m/%d/',
+        validators=[FileExtensionValidator(
+            allowed_extensions=['pdf', 'doc', 'docx', 'jpg', 'png', 'txt']
+        )],
+        null=True,
+        blank=True
+    )
+
+    priority_changed_at = models.DateTimeField(null=True, blank=True)
+    satisfaction_rating = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    tags = models.ManyToManyField('SupportTag', blank=True)
+
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old_instance = SupportRequest.objects.get(pk=self.pk)
+            if old_instance.priority != self.priority:
+                self.priority_changed_at = timezone.now()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'priority']),
+            models.Index(fields=['requested_by']),
+            models.Index(fields=['assigned_to']),
+        ]
+
+    def __str__(self):
+        return f"{self.title} - {self.get_status_display()}"
+
+    def get_absolute_url(self):
+        return reverse('support:request_detail', kwargs={'pk': self.pk})
+
+    def assign_to_staff(self, staff_member, assigned_by):
+        """Assign request to staff member"""
+        self.assigned_to = staff_member
+        self.status = 'assigned'
+        self._current_user = assigned_by
+        self.save()
+
+        # Create assignment record
+        SupportAssignment.objects.create(
+            support_request=self,
+            staff_member=staff_member,
+            assigned_by=assigned_by
+        )
+
+    def save(self, *args, **kwargs):
+        # Handle versioning
+        if self.pk:
+            current = SupportRequest.objects.get(pk=self.pk)
+            if (current.title != self.title or
+                    current.description != self.description or
+                    current.request_type != self.request_type):
+                # Create version history
+                SupportRequestVersion.objects.create(
+                    support_request=self,
+                    title=current.title,
+                    description=current.description,
+                    request_type=current.request_type,
+                    version=self.version
+                )
+                self.version += 1
+
+        super().save(*args, **kwargs)
+
+    @property
+    def is_resolved(self):
+        return self.status in ['resolved', 'closed']
+
+    @property
+    def is_overdue(self):
+        if self.due_date and not self.is_resolved:
+            return timezone.now() > self.due_date
+        return False
+
+    def resolve(self, resolution_notes, resolved_by):
+        """Mark request as resolved"""
+        self.status = 'resolved'
+        self.resolution_notes = resolution_notes
+        self.resolved_at = timezone.now()
+        self._current_user = resolved_by
+        self.save()
+
+class SupportTag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    color = models.CharField(max_length=7, default="#FF0000")
+
+    def __str__(self):
+        return self.name
+
+class SupportRequestVersion(models.Model):
+    """
+    Model to track versions of support requests
+    """
+    support_request = models.ForeignKey(
+        SupportRequest,
+        on_delete=models.CASCADE,
+        related_name='versions'
+    )
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    request_type = models.CharField(max_length=20, choices=SupportRequest.REQUEST_TYPE_CHOICES)
+    version = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    class Meta:
+        ordering = ['-version']
+        unique_together = ['support_request', 'version']
+
+    def __str__(self):
+        return f"{self.support_request.title} - v{self.version}"
+
+
+class SupportAssignment(AuditModelMixin, models.Model):
+    """
+    Model to track support request assignments
+    """
+    support_request = models.ForeignKey(
+        SupportRequest,
+        on_delete=models.CASCADE,
+        related_name='assignments'
+    )
+    staff_member = models.ForeignKey(
+        'people.Staff',
+        on_delete=models.CASCADE,
+        related_name='support_assignments'
+    )
+    assigned_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='assigned_support_requests'
+    )
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.support_request} assigned to {self.staff_member}"
+
+
+class SupportAssistance(AuditModelMixin, models.Model):
+    """
+    Model to track additional staff members assisting with a request
+    """
+    support_request = models.ForeignKey(
+        SupportRequest,
+        on_delete=models.CASCADE,
+        related_name='assistance_records'
+    )
+    staff_member = models.ForeignKey(
+        'people.Staff',
+        on_delete=models.CASCADE,
+        related_name='assistance_records'
+    )
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='requested_assistance'
+    )
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['support_request', 'staff_member']
+
+    def __str__(self):
+        return f"{self.staff_member} assisting on {self.support_request}"
+
+
+class SupportComment(AuditModelMixin, models.Model):
+    """
+    Model for comments and replies on support requests
+    """
+    support_request = models.ForeignKey(
+        SupportRequest,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='support_comments'
+    )
+    content = models.TextField()
+    internal_note = models.BooleanField(
+        default=False,
+        help_text="If checked, this comment is only visible to staff members"
+    )
+    # For threaded comments
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='replies'
+    )
+    attachment = models.FileField(
+        upload_to='support_comments/%Y/%m/%d/',
+        validators=[FileExtensionValidator(
+            allowed_extensions=['pdf', 'doc', 'docx', 'jpg', 'png', 'txt']
+        )],
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Comment by {self.author} on {self.support_request}"
+
+    @property
+    def is_reply(self):
+        return self.parent is not None
+
+    def get_replies(self):
+        """Get all replies to this comment"""
+        return self.replies.all().order_by('created_at')

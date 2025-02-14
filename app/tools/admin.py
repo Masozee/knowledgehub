@@ -2,11 +2,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import (
-    DatabaseBackup, AnalyticsVisitorData, Conversation, Message,
-    TextContent, CodeContent, ImageContent, VideoContent, VideoNote,
-    Notification
-)
+from .models import *
 from django.utils.safestring import mark_safe
 from django.contrib.contenttypes.models import ContentType
 from django.template.defaultfilters import truncatechars
@@ -366,3 +362,248 @@ class NotificationAdmin(admin.ModelAdmin):
     list_filter = ('is_read', 'created_at')
     search_fields = ('user__username', 'message')
     readonly_fields = ('created_at',)
+
+'''
+class SupportRequestVersionInline(admin.TabularInline):
+    model = SupportRequestVersion
+    extra = 0
+    readonly_fields = ['version', 'title', 'description', 'request_type', 'created_at', 'created_by']
+    can_delete = False
+    ordering = ['-version']
+    max_num = 0
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class SupportAssistanceInline(admin.TabularInline):
+    model = SupportAssistance
+    extra = 1
+    autocomplete_fields = ['staff_member']
+    fields = ['staff_member', 'notes', 'is_active', 'requested_by']
+
+
+class SupportCommentInline(admin.TabularInline):
+    model = SupportComment
+    extra = 0
+    fields = ['author', 'content', 'internal_note', 'attachment']
+    readonly_fields = ['created_at']
+
+
+@admin.register(SupportRequest)
+class SupportRequestAdmin(admin.ModelAdmin):
+    list_display = [
+        'title',
+        'request_type',
+        'priority',
+        'status',
+        'requested_by',
+        'assigned_to',
+        'due_date',
+        'is_overdue_status',
+        'version',
+        'created_at'
+    ]
+    list_filter = [
+        'status',
+        'priority',
+        'request_type',
+        ('assigned_to', admin.RelatedOnlyFieldListFilter),
+        'created_at',
+    ]
+    search_fields = [
+        'title',
+        'description',
+        'requested_by__email',
+        'assigned_to__person__first_name',
+        'assigned_to__person__last_name'
+    ]
+    readonly_fields = ['version', 'created_at', 'updated_at', 'created_by', 'updated_by']
+    autocomplete_fields = ['requested_by', 'assigned_to', 'project']
+    date_hierarchy = 'created_at'
+    inlines = [SupportRequestVersionInline, SupportAssistanceInline, SupportCommentInline]
+
+    fieldsets = (
+        ('Request Information', {
+            'fields': (
+                'title',
+                'description',
+                'request_type',
+                'priority',
+                'status',
+                'project'
+            )
+        }),
+        ('Assignment', {
+            'fields': (
+                'requested_by',
+                'assigned_to',
+                'due_date'
+            )
+        }),
+        ('Resolution', {
+            'fields': (
+                'resolution_notes',
+                'resolved_at'
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Audit Information', {
+            'fields': (
+                'version',
+                'created_by',
+                'created_at',
+                'updated_by',
+                'updated_at'
+            ),
+            'classes': ('collapse',)
+        })
+    )
+
+    def is_overdue_status(self, obj):
+        if obj.is_overdue:
+            return format_html(
+                '<span style="color: red;">⚠️ Overdue</span>'
+            )
+        return format_html(
+            '<span style="color: green;">✓ On track</span>'
+        )
+
+    is_overdue_status.short_description = 'Status'
+
+    actions = ['mark_resolved', 'mark_in_progress', 'mark_on_hold']
+
+    @admin.action(description="Mark selected requests as resolved")
+    def mark_resolved(self, request, queryset):
+        queryset.update(
+            status='resolved',
+            resolved_at=timezone.now(),
+            updated_by=request.user
+        )
+
+    @admin.action(description="Mark selected requests as in progress")
+    def mark_in_progress(self, request, queryset):
+        queryset.update(
+            status='in_progress',
+            updated_by=request.user
+        )
+
+    @admin.action(description="Mark selected requests as on hold")
+    def mark_on_hold(self, request, queryset):
+        queryset.update(
+            status='on_hold',
+            updated_by=request.user
+        )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'requested_by',
+            'assigned_to',
+            'project'
+        )
+
+
+@admin.register(SupportComment)
+class SupportCommentAdmin(admin.ModelAdmin):
+    list_display = [
+        'support_request_link',
+        'author',
+        'content_preview',
+        'is_reply',
+        'internal_note',
+        'has_attachment',
+        'created_at'
+    ]
+    list_filter = [
+        'internal_note',
+        'created_at',
+        ('author', admin.RelatedOnlyFieldListFilter)
+    ]
+    search_fields = [
+        'content',
+        'author__email',
+        'support_request__title'
+    ]
+    autocomplete_fields = ['support_request', 'author', 'parent']
+    readonly_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
+
+    def support_request_link(self, obj):
+        url = reverse('admin:support_supportrequest_change', args=[obj.support_request.id])
+        return format_html('<a href="{}">{}</a>', url, obj.support_request.title)
+
+    support_request_link.short_description = 'Support Request'
+
+    def content_preview(self, obj):
+        return obj.content[:100] + '...' if len(obj.content) > 100 else obj.content
+
+    content_preview.short_description = 'Content'
+
+    def has_attachment(self, obj):
+        return bool(obj.attachment)
+
+    has_attachment.boolean = True
+    has_attachment.short_description = 'Attachment'
+
+
+@admin.register(SupportAssignment)
+class SupportAssignmentAdmin(admin.ModelAdmin):
+    list_display = [
+        'support_request_link',
+        'staff_member',
+        'assigned_by',
+        'is_active',
+        'created_at'
+    ]
+    list_filter = [
+        'is_active',
+        'created_at',
+        ('staff_member', admin.RelatedOnlyFieldListFilter),
+        ('assigned_by', admin.RelatedOnlyFieldListFilter)
+    ]
+    search_fields = [
+        'support_request__title',
+        'staff_member__person__first_name',
+        'staff_member__person__last_name',
+        'assigned_by__email'
+    ]
+    autocomplete_fields = ['support_request', 'staff_member', 'assigned_by']
+    readonly_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
+
+    def support_request_link(self, obj):
+        url = reverse('admin:support_supportrequest_change', args=[obj.support_request.id])
+        return format_html('<a href="{}">{}</a>', url, obj.support_request.title)
+
+    support_request_link.short_description = 'Support Request'
+
+
+@admin.register(SupportAssistance)
+class SupportAssistanceAdmin(admin.ModelAdmin):
+    list_display = [
+        'support_request_link',
+        'staff_member',
+        'requested_by',
+        'is_active',
+        'created_at'
+    ]
+    list_filter = [
+        'is_active',
+        'created_at',
+        ('staff_member', admin.RelatedOnlyFieldListFilter),
+        ('requested_by', admin.RelatedOnlyFieldListFilter)
+    ]
+    search_fields = [
+        'support_request__title',
+        'staff_member__person__first_name',
+        'staff_member__person__last_name',
+        'requested_by__email'
+    ]
+    autocomplete_fields = ['support_request', 'staff_member', 'requested_by']
+    readonly_fields = ['created_at', 'updated_at', 'created_by', 'updated_by']
+
+    def support_request_link(self, obj):
+        url = reverse('admin:support_supportrequest_change', args=[obj.support_request.id])
+        return format_html('<a href="{}">{}</a>', url, obj.support_request.title)
+
+    support_request_link.short_description = 'Support Request'
+
+'''

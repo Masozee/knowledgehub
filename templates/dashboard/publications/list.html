@@ -1,0 +1,134 @@
+{% extends 'dashboard/publications/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="nk-content-body">
+    <div class="nk-content-wrap">
+        <!-- Header -->
+        <div class="nk-block-head nk-block-head-sm">
+            <div class="nk-block-between">
+                <div class="nk-block-head-content">
+                    <h3 class="nk-block-title page-title">Publications</h3>
+                    <div class="nk-block-des text-soft">
+                        <p>Browse through our collection of publications</p>
+                    </div>
+                </div>
+                <div class="nk-block-head-content">
+                    <div class="toggle-wrap nk-block-tools-toggle">
+                        <form method="get" class="toggle-expanded">
+                            <div class="input-group">
+                                {{ search_form.q }}
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="submit">
+                                        <em class="icon ni ni-search"></em>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Publications Grid -->
+        <div class="nk-block">
+            {% if publications %}
+            <div class="row g-gs">
+                {% for publication in publications %}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card card-bordered h-100">
+                        {% if publication.image %}
+                        <img src="{{ publication.image.url }}" class="card-img-top" alt="{{ publication.title }}">
+                        {% endif %}
+                        <div class="card-inner">
+                            <h5 class="card-title">
+                                <a href="{% url 'publications:publication-detail' publication.slug %}" class="text-dark">
+                                    {{ publication.title }}
+                                </a>
+                            </h5>
+                            <div class="card-text">
+                                {% if publication.category %}
+                                <span class="badge bg-primary">{{ publication.category.name }}</span>
+                                {% endif %}
+                                <span class="text-muted">{{ publication.date_publish|date:"M Y" }}</span>
+                            </div>
+                            <div class="card-text mt-2">
+                                <!-- Authors -->
+                                <small class="text-muted">
+                                    {% for author in publication.get_author_list|slice:":3" %}
+                                        {{ author }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                    {% if publication.get_author_list|length > 3 %}
+                                        ...
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <!-- Stats -->
+                            <div class="card-text mt-3">
+                                <div class="d-flex justify-content-between text-soft">
+                                    <span><em class="icon ni ni-eye"></em> {{ publication.viewed }}</span>
+                                    <span><em class="icon ni ni-download"></em> {{ publication.download_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="mt-4">
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                <em class="icon ni ni-chevron-left"></em>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                <em class="icon ni ni-chevron-right"></em>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="card card-bordered">
+                <div class="card-inner text-center">
+                    <em class="icon ni ni-file-docs" style="font-size: 2rem;"></em>
+                    <p class="text-soft mt-3">No publications found.</p>
+                    {% if request.GET.q %}
+                    <a href="{% url 'publications:publication-list' %}" class="btn btn-dim btn-outline-primary">
+                        Clear Search
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

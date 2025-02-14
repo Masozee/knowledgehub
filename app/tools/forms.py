@@ -1,6 +1,7 @@
 # forms.py
 from django import forms
-
+from app.people.models import *
+from app.tools.models import *
 
 class VideoUploadForm(forms.Form):
     video_type = forms.ChoiceField(
@@ -38,3 +39,39 @@ class VideoUploadForm(forms.Form):
             raise forms.ValidationError('Please upload a video file')
 
         return cleaned_data
+
+class SupportRequestForm(forms.ModelForm):
+    class Meta:
+        model = SupportRequest
+        fields = [
+            'title', 'description', 'request_type',
+            'priority', 'attachments', 'tags', 'project'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'tags': forms.CheckboxSelectMultiple()
+        }
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = SupportComment
+        fields = ['content', 'attachment', 'internal_note']
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class AssignmentForm(forms.Form):
+    staff_member = forms.ModelChoiceField(
+        queryset=Staff.objects.filter(is_active=True)
+    )
+    notes = forms.CharField(widget=forms.Textarea, required=False)
+
+class ResolutionForm(forms.Form):
+    resolution_notes = forms.CharField(widget=forms.Textarea)
+    satisfaction_rating = forms.IntegerField(
+        min_value=1, max_value=5,
+        required=False,
+        widget=forms.RadioSelect(choices=[
+            (i, f"{i} stars") for i in range(1, 6)
+        ])
+    )
